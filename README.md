@@ -215,6 +215,19 @@ npm install
 npm run dev
 ```
 
+Para probar en el celular con un túnel HTTPS (ngrok, Cloudflare Tunnel, etc.),
+la API también tiene que estar publicada por HTTPS. Compilá la app con esa URL:
+
+```bash
+cd app
+VITE_API_URL=https://<tu-tunel-api> npm run build
+npm run preview -- --host 0.0.0.0 --port 8080
+```
+
+También podés dejar la URL en `app/.env.local` (ignorado por git); tiene
+prioridad sobre `.env` y evita que un `npm run build` vuelva a apuntar a
+`localhost`.
+
 Para probar el build de producción y la instalación:
 
 ```bash
