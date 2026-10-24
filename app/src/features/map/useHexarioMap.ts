@@ -5,11 +5,13 @@ import { cellToLatLng } from 'h3-js';
 import {
   createBaseStyle,
   createLocationMarker,
+  createPin,
   setupHexarioMap,
   type HexCell,
   type HexarioMapController,
   type ThemeName,
 } from '../../design-system';
+import type { Business } from '../../api/businesses';
 import {
   MAP_BOTTOM_PADDING,
   MAP_CENTER,
@@ -34,8 +36,11 @@ type UseHexarioMapOptions = {
   container: RefObject<HTMLDivElement | null>;
   theme: ThemeName;
   cells: HexCell[];
+  businesses: Business[];
+  selectedBusinessId: number | null;
   location: Location | null;
   onSelectHex: (h3: string | null) => void;
+  onSelectBusiness: (id: number) => void;
   onBoundsChange: (bounds: MapBounds) => void;
 };
 
@@ -53,15 +58,20 @@ export function useHexarioMap({
   container,
   theme,
   cells,
+  businesses,
+  selectedBusinessId,
   location,
   onSelectHex,
+  onSelectBusiness,
   onBoundsChange,
 }: UseHexarioMapOptions): MapControls {
   const mapRef = useRef<MapLibreMap | null>(null);
   const controllerRef = useRef<HexarioMapController | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const businessMarkersRef = useRef<Marker[]>([]);
   const themeRef = useRef(theme);
   const selectRef = useRef(onSelectHex);
+  const selectBusinessRef = useRef(onSelectBusiness);
   const boundsRef = useRef(onBoundsChange);
   const locationRef = useRef(location);
 
@@ -72,6 +82,10 @@ export function useHexarioMap({
   useEffect(() => {
     selectRef.current = onSelectHex;
   }, [onSelectHex]);
+
+  useEffect(() => {
+    selectBusinessRef.current = onSelectBusiness;
+  }, [onSelectBusiness]);
 
   useEffect(() => {
     boundsRef.current = onBoundsChange;
@@ -136,6 +150,35 @@ export function useHexarioMap({
   useEffect(() => {
     controllerRef.current?.setHexes(cells);
   }, [cells]);
+
+  // Los comercios son marcadores DOM (createPin del design system), no una
+  // capa de MapLibre: el pin ya trae el ícono, el estado seleccionado y el
+  // área táctil de 44 px.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    businessMarkersRef.current.forEach((marker) => marker.remove());
+    businessMarkersRef.current = businesses.map((business) => {
+      const marker = new Marker({
+        element: createPin({
+          kind: 'commerce',
+          name: business.name,
+          selected: business.id === selectedBusinessId,
+          onClick: () => selectBusinessRef.current(business.id),
+        }),
+        anchor: 'center',
+      })
+        .setLngLat([business.longitude, business.latitude])
+        .addTo(map);
+      return marker;
+    });
+
+    return () => {
+      businessMarkersRef.current.forEach((marker) => marker.remove());
+      businessMarkersRef.current = [];
+    };
+  }, [businesses, selectedBusinessId]);
 
   useEffect(() => {
     controllerRef.current?.setTheme(theme);

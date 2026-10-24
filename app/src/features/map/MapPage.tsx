@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { latLngToCell } from 'h3-js';
 import {
   BottomSheet,
@@ -13,6 +14,7 @@ import {
   IconLocate,
   IconPause,
   IconPlay,
+  IconTicket,
   StatRow,
   formatPoints,
   useTheme,
@@ -32,6 +34,7 @@ import { AppNav } from '../../layout/AppNav';
 import { getErrorMessage } from '../../lib/errors';
 import { useGeoLocation, type GeoPosition } from './useGeoLocation';
 import { useTerritories } from './useTerritories';
+import { useBusinesses, usePromotions } from '../businesses/useCatalog';
 import { useHexarioMap, type MapBounds } from './useHexarioMap';
 import {
   colorForPlayer,
@@ -62,6 +65,7 @@ export function MapPage() {
   const toast = useToast();
   const { user, logout } = useAuth();
   const username = user?.username;
+  const navigate = useNavigate();
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const claimingRef = useRef(false);
@@ -72,10 +76,13 @@ export function MapPage() {
 
   const [snap, setSnap] = useState<SheetSnap>(() => (window.innerHeight < 680 ? 'min' : 'mid'));
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<number | null>(null);
   const [mineCount, setMineCount] = useState(0);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   const { data, loading, error: territoriesError, setBbox, refresh: refreshTerritories } = useTerritories();
+  const { data: businesses } = useBusinesses();
+  const { data: promotions } = usePromotions();
   const { position, status, error: geoError, active, start, stop } = useGeoLocation();
 
   const refreshMine = useCallback(async () => {
@@ -102,8 +109,16 @@ export function MapPage() {
 
   const handleSelectHex = useCallback((h3: string | null) => {
     pendingClaimRef.current = null;
+    setSelectedBusinessId(null);
     setSelected(h3);
     if (h3) setSnap((current) => (current === 'min' ? 'mid' : current));
+  }, []);
+
+  const handleSelectBusiness = useCallback((id: number) => {
+    setSelectedBusinessId((current) => (current === id ? null : id));
+    setSelected(null);
+    pendingClaimRef.current = null;
+    setSnap((current) => (current === 'min' ? 'mid' : current));
   }, []);
 
   const handleBoundsChange = useCallback(
@@ -113,12 +128,25 @@ export function MapPage() {
     [setBbox],
   );
 
+  const businessMarkers = useMemo(() => businesses ?? [], [businesses]);
+  const selectedBusiness = useMemo(
+    () => businessMarkers.find((business) => business.id === selectedBusinessId) ?? null,
+    [businessMarkers, selectedBusinessId],
+  );
+  const businessPromotions = useMemo(
+    () => (promotions ?? []).filter((promotion) => promotion.business.id === selectedBusinessId),
+    [promotions, selectedBusinessId],
+  );
+
   const { centerOnLocation } = useHexarioMap({
     container: mapContainer,
     theme,
     cells,
+    businesses: businessMarkers,
+    selectedBusinessId,
     location: position,
     onSelectHex: handleSelectHex,
+    onSelectBusiness: handleSelectBusiness,
     onBoundsChange: handleBoundsChange,
   });
 
@@ -364,13 +392,60 @@ export function MapPage() {
       )}
 
       <BottomSheet
-        label={selectedDescriptor ? 'Hexágono seleccionado' : 'Resumen de tus hexágonos'}
+        label={selectedBusiness ? 'Local adherido' : selectedDescriptor ? 'Hexágono seleccionado' : 'Resumen de tus hexágonos'}
         snap={snap}
         onSnapChange={setSnap}
         heights={SHEET_HEIGHTS}
         footer={<AppNav fixed={false} />}
       >
-        {selectedDescriptor && selectedState ? (
+        {selectedBusiness ? (
+          <>
+            <div className="hx-sheet__row" style={{ alignItems: 'center' }}>
+              <span className="hx-label">Local adherido</span>
+              <IconButton
+                aria-label="Cerrar local"
+                variant="subtle"
+                onClick={() => setSelectedBusinessId(null)}
+              >
+                <IconClose size={18} />
+              </IconButton>
+            </div>
+            <article className="hx-card hx-card--flat" aria-label={selectedBusiness.name}>
+              <div className="hx-owner">
+                <span className="hx-avatar hx-avatar--outline" aria-hidden="true">
+                  <IconTicket size={18} />
+                </span>
+                <span className="hx-owner__text">
+                  <span className="hx-owner__name">{selectedBusiness.name}</span>
+                  <span className="hx-caption">
+                    {selectedBusiness.neighborhood} · {selectedBusiness.address}
+                  </span>
+                </span>
+                {businessPromotions.length > 0 && (
+                  <Chip tone="ok" size="sm">
+                    {businessPromotions.length} promos
+                  </Chip>
+                )}
+              </div>
+              <p className="hx-caption">{selectedBusiness.description}</p>
+              {businessPromotions.length > 0 ? (
+                <ul className="hx-business-promos">
+                  {businessPromotions.slice(0, 3).map((promotion) => (
+                    <li key={promotion.id} className="hx-business-promo">
+                      <span>{promotion.title}</span>
+                      <span>{formatPoints(promotion.costPoints)} pts</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="hx-caption">Sin promos disponibles por ahora.</p>
+              )}
+              <Button variant="secondary" onClick={() => navigate('/canjes')}>
+                Ver todos los canjes
+              </Button>
+            </article>
+          </>
+        ) : selectedDescriptor && selectedState ? (
           <>
             <div className="hx-sheet__row" style={{ alignItems: 'center' }}>
               <span className="hx-label">Hexágono</span>

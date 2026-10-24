@@ -113,6 +113,72 @@ const PROMOTIONS: SeedPromotion[] = [
         startsAt: starts,
         endsAt: ends
     },
+    {
+        businessSlug: "rotiseria-la-bomba",
+        title: "Docena de empanadas surtidas",
+        description: "Doce empanadas de carne, pollo y jamón y queso para llevar.",
+        conditions: "Pedido con 30 minutos de anticipación. No incluye bebida.",
+        costPoints: 1000,
+        stock: 15,
+        perUserLimit: 1,
+        startsAt: starts,
+        endsAt: ends
+    },
+    {
+        businessSlug: "vinoteca-orono",
+        title: "Vino de la casa + tabla de quesos",
+        description: "Una botella de vino de pequeña bodega y una tabla de quesos.",
+        conditions: "Sólo mayores de 18. Consumo en el local.",
+        costPoints: 1800,
+        stock: 12,
+        perUserLimit: 1,
+        startsAt: starts,
+        endsAt: ends
+    },
+    {
+        businessSlug: "floreria-pichincha",
+        title: "Ramo chico de estación",
+        description: "Ramo armado con flores de estación y papel kraft.",
+        conditions: "Retirar en el local. Sujeto a disponibilidad de flores.",
+        costPoints: 650,
+        stock: 10,
+        perUserLimit: 1,
+        startsAt: starts,
+        endsAt: ends
+    },
+    {
+        businessSlug: "gimnasio-norte",
+        title: "Clase de prueba + evaluación",
+        description: "Una clase funcional de prueba y una evaluación inicial.",
+        conditions: "Requiere reserva previa. Válido para nuevos alumnos.",
+        costPoints: 1200,
+        stock: 20,
+        perUserLimit: 1,
+        startsAt: starts,
+        endsAt: ends
+    },
+    {
+        businessSlug: "ceramica-abasto",
+        title: "Taza artesanal",
+        description: "Una taza de cerámica hecha a mano, a elección entre los modelos disponibles.",
+        conditions: "Retirar en el taller. Stock limitado.",
+        costPoints: 750,
+        stock: 12,
+        perUserLimit: 1,
+        startsAt: starts,
+        endsAt: ends
+    },
+    {
+        businessSlug: "cafeteria-del-parque",
+        title: "Café + porción de torta",
+        description: "Un café de especialidad y una porción de torta casera.",
+        conditions: "Válido de lunes a viernes hasta las 18:00.",
+        costPoints: 550,
+        stock: 20,
+        perUserLimit: 1,
+        startsAt: starts,
+        endsAt: ends
+    },
     // Estos tres existen para probar que la API no muestra promos vencidas,
     // pausadas ni sin stock.
     {

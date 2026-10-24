@@ -1,48 +1,55 @@
-import { latLngToCell } from "h3-js";
+import { gridDisk, latLngToCell } from "h3-js";
 import { db } from "../src/db/client";
 import { territoriesTable } from "../src/db/schema";
 import type { User } from "../src/modules/user";
 
-type SeedClaim = {
+type SeedCluster = {
     owner: string;
     latitude: number;
     longitude: number;
-    hoursAgo: number;
+    cells: number;
 };
 
-// Celdas repartidas por zonas de Rosario. Evitan a propósito las coordenadas
-// que usan los tests de territorio (-32.949,-60.698 y -32.96,-60.71) para que
-// el test de "primer dueño" siga arrancando con la celda libre.
-const CLAIMS: SeedClaim[] = [
-    { owner: "usuario_uno", latitude: -32.9472, longitude: -60.6392, hoursAgo: 2 },
-    { owner: "usuario_uno", latitude: -32.9440, longitude: -60.6360, hoursAgo: 3 },
-    { owner: "juli", latitude: -32.9535, longitude: -60.6485, hoursAgo: 5 },
-    { owner: "juli", latitude: -32.9560, longitude: -60.6535, hoursAgo: 8 },
-    { owner: "tomi", latitude: -32.9410, longitude: -60.6430, hoursAgo: 12 },
-    { owner: "tomi", latitude: -32.9380, longitude: -60.6500, hoursAgo: 14 },
-    { owner: "agus", latitude: -32.9480, longitude: -60.6550, hoursAgo: 18 },
-    { owner: "agus", latitude: -32.9600, longitude: -60.6450, hoursAgo: 20 },
-    { owner: "meli", latitude: -32.9650, longitude: -60.6600, hoursAgo: 26 },
-    { owner: "nico", latitude: -32.9520, longitude: -60.6300, hoursAgo: 30 },
-    { owner: "sofia", latitude: -32.9445, longitude: -60.6600, hoursAgo: 36 },
-    { owner: "usuario_dos", latitude: -32.9505, longitude: -60.6325, hoursAgo: 40 }
+// Cada usuario recibe una mancha contigua de hexágonos alrededor de una zona
+// de Rosario. Los centros están lejos de las coordenadas que usan los tests
+// de territorio para que esas celdas sigan libres.
+const CLUSTERS: SeedCluster[] = [
+    { owner: "usuario_uno", latitude: -32.9472, longitude: -60.6392, cells: 14 },
+    { owner: "usuario_dos", latitude: -32.9505, longitude: -60.6325, cells: 12 },
+    { owner: "juli", latitude: -32.9535, longitude: -60.6485, cells: 13 },
+    { owner: "tomi", latitude: -32.9410, longitude: -60.6430, cells: 12 },
+    { owner: "agus", latitude: -32.9480, longitude: -60.6550, cells: 11 },
+    { owner: "meli", latitude: -32.9650, longitude: -60.6600, cells: 10 },
+    { owner: "nico", latitude: -32.9380, longitude: -60.6500, cells: 11 },
+    { owner: "sofia", latitude: -32.9445, longitude: -60.6600, cells: 10 }
 ];
 
 export async function seedTerritories(users: User[]): Promise<number> {
     const usersByName = new Map(users.map((user) => [user.username, user]));
     const now = Date.now();
     const byCell = new Map<string, { id: string; ownerId: number; claimedAt: Date }>();
+    let claimed = 0;
 
-    for (const claim of CLAIMS) {
-        const owner = usersByName.get(claim.owner);
-        if (!owner) throw new Error(`No existe el usuario seed ${claim.owner}`);
+    for (const cluster of CLUSTERS) {
+        const owner = usersByName.get(cluster.owner);
+        if (!owner) throw new Error(`No existe el usuario seed ${cluster.owner}`);
 
-        const id = latLngToCell(claim.latitude, claim.longitude, 10);
-        byCell.set(id, {
-            id,
-            ownerId: owner.id,
-            claimedAt: new Date(now - claim.hoursAgo * 60 * 60 * 1000)
-        });
+        const center = latLngToCell(cluster.latitude, cluster.longitude, 10);
+        const candidates = gridDisk(center, 4);
+
+        let added = 0;
+        for (const id of candidates) {
+            if (added >= cluster.cells) break;
+            if (byCell.has(id)) continue;
+
+            byCell.set(id, {
+                id,
+                ownerId: owner.id,
+                claimedAt: new Date(now - claimed * 45 * 60 * 1000)
+            });
+            added += 1;
+            claimed += 1;
+        }
     }
 
     await db.insert(territoriesTable)

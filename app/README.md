@@ -55,14 +55,14 @@ requests y traduce errores de la API.
 
 ```
 src/
-├── api/                 cliente HTTP + endpoints (auth, user)
+├── api/                 cliente HTTP + endpoints (auth, user, territories, businesses)
 ├── auth/                AuthContext (login/register/logout + sesión)
 ├── components/          piezas compartidas que no son del design system
 ├── design-system/       sistema de diseño (tokens + componentes + readme)
 ├── features/
 │   ├── auth/            login, registro y guards de ruta
-│   ├── map/             mapa MapLibre/H3, mock de territorio y hoja inferior
-│   ├── rewards/         promociones, cupón con QR y mock de canjes
+│   ├── map/             mapa MapLibre/H3, territorios y locales adheridos
+│   ├── rewards/         promociones reales de la API (canje pendiente)
 │   ├── ranking/         ranking por período y mock
 │   ├── profile/         perfil y edición de email
 │   └── pwa/             instalación, offline y service worker helpers
@@ -110,6 +110,10 @@ Reglas de estilo React: [`CLAUDE.md`](CLAUDE.md).
 `src/features/map/mapConfig.ts` centraliza el proveedor de teselas
 (OpenFreeMap, sin API key), los glifos y el centro inicial en Rosario. El
 worker de MapLibre se emite como asset de Vite para que funcione en el build.
+
+Los locales se piden a `GET /businesses` y se dibujan como pins
+(`createPin` del design system) usando su `latitude`/`longitude`. Al tocar un
+pin se abre la hoja con el local y sus promos disponibles.
 
 ## Docker
 

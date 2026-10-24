@@ -39,7 +39,7 @@ Colección de **Bruno** con los endpoints disponibles hoy en el backend.
 | `nico` | `seed12345` |
 | `sofia` | `seed12345` |
 
-El seed también carga 12 territorios, 8 comercios y 12 promociones (9
+El seed también carga 93 territorios, 14 comercios y 18 promociones (15
 disponibles y 3 ocultas a propósito para probar los filtros).
 
 ## Autenticación

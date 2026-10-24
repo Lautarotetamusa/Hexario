@@ -5,6 +5,7 @@ import { db } from "../src/db/client";
 import { promotionsTable } from "../src/db/schema";
 import { createContainer } from "../src/container";
 import { createApp } from "../src/app";
+import { ROSARIO_BOUNDS } from "../src/modules/territory/territory.service";
 
 const app = createApp(createContainer());
 
@@ -16,8 +17,8 @@ describe("negocios y promociones", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
-        expect(response.body.data.count).toBe(8);
-        expect(response.body.data.items).toHaveLength(8);
+        expect(response.body.data.count).toBe(14);
+        expect(response.body.data.items).toHaveLength(14);
 
         const cafe = response.body.data.items.find(
             (business: { slug: string }) => business.slug === "cafe-la-florida"
@@ -26,6 +27,13 @@ describe("negocios y promociones", () => {
         expect(cafe.neighborhood).toBe("Centro");
         expect(typeof cafe.latitude).toBe("number");
         expect(cafe.isActive).not.toBeDefined();
+
+        for (const business of response.body.data.items) {
+            expect(business.latitude).toBeGreaterThanOrEqual(ROSARIO_BOUNDS.south);
+            expect(business.latitude).toBeLessThanOrEqual(ROSARIO_BOUNDS.north);
+            expect(business.longitude).toBeGreaterThanOrEqual(ROSARIO_BOUNDS.west);
+            expect(business.longitude).toBeLessThanOrEqual(ROSARIO_BOUNDS.east);
+        }
     });
 
     it("devuelve el detalle del negocio con sus promos disponibles", async () => {
@@ -46,8 +54,8 @@ describe("negocios y promociones", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
-        expect(response.body.data.count).toBe(9);
-        expect(response.body.data.items).toHaveLength(9);
+        expect(response.body.data.count).toBe(15);
+        expect(response.body.data.items).toHaveLength(15);
 
         const titles = response.body.data.items.map((promotion: { title: string }) => promotion.title);
         expect(titles).not.toContain("Promo vencida");

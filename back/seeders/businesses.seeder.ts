@@ -100,6 +100,78 @@ const BUSINESSES: NewBusiness[] = [
         longitude: -60.650,
         phone: "341 555 0108",
         instagram: "elfederalbar"
+    },
+    {
+        slug: "rotiseria-la-bomba",
+        name: "Rotisería La Bomba",
+        description: "Empanadas, pizzas y comida casera para llevar.",
+        category: "rotiseria",
+        address: "San Luis 1450",
+        neighborhood: "Centro",
+        latitude: -32.946,
+        longitude: -60.635,
+        phone: "341 555 0109",
+        instagram: "labombarotisa"
+    },
+    {
+        slug: "vinoteca-orono",
+        name: "Vinoteca Oroño",
+        description: "Vinos de pequeñas bodegas y tablas para compartir.",
+        category: "vinoteca",
+        address: "Bv. Oroño 750",
+        neighborhood: "República",
+        latitude: -32.958,
+        longitude: -60.642,
+        phone: "341 555 0110",
+        instagram: "vinoteca.orono"
+    },
+    {
+        slug: "floreria-pichincha",
+        name: "Florería Pichincha",
+        description: "Flores de estación, plantas y ramos armados en el día.",
+        category: "floreria",
+        address: "Ricardone 1350",
+        neighborhood: "Pichincha",
+        latitude: -32.951,
+        longitude: -60.650,
+        phone: "341 555 0111",
+        instagram: "floreriapichincha"
+    },
+    {
+        slug: "gimnasio-norte",
+        name: "Gimnasio Norte",
+        description: "Entrenamiento funcional, musculación y clases reducidas.",
+        category: "gimnasio",
+        address: "Av. Carballo 1200",
+        neighborhood: "Arroyito",
+        latitude: -32.935,
+        longitude: -60.646,
+        phone: "341 555 0112",
+        instagram: "gimnasio.norte"
+    },
+    {
+        slug: "ceramica-abasto",
+        name: "Cerámica Abasto",
+        description: "Piezas utilitarias hechas a mano por ceramistas locales.",
+        category: "ceramica",
+        address: "Av. Ovidio Lagos 2100",
+        neighborhood: "Abasto",
+        latitude: -32.961,
+        longitude: -60.657,
+        phone: "341 555 0113",
+        instagram: "ceramica.abasto"
+    },
+    {
+        slug: "cafeteria-del-parque",
+        name: "Cafetería del Parque",
+        description: "Café, tortas y mesas al aire libre frente al parque.",
+        category: "cafe",
+        address: "Av. Pellegrini 1700",
+        neighborhood: "Parque",
+        latitude: -32.942,
+        longitude: -60.658,
+        phone: "341 555 0114",
+        instagram: "cafeteria.delparque"
     }
 ];
 

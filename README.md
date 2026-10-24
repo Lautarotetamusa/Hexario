@@ -134,7 +134,7 @@ docker compose up -d postgresdb
 cd back
 npm install
 npm run db:migrate:run       # aplica db/migrations
-npm run seed                 # 8 usuarios, 12 territorios, 8 negocios y 12 promos
+npm run seed                 # 8 usuarios, 93 territorios, 14 negocios y 18 promos
 npm run dev                  # http://localhost:3001
 ```
 
@@ -164,7 +164,7 @@ que pongas en `back/.env` y ajustá `DB_PORT` (por defecto el ejemplo usa
 | `nico` | `seed12345` |
 | `sofia` | `seed12345` |
 
-El seed también carga territorios, 8 comercios y 12 promociones de ejemplo.
+El seed también carga 93 territorios, 14 comercios y 18 promociones de ejemplo.
 
 ## Endpoints
 
@@ -219,8 +219,8 @@ La app consume el back en `VITE_API_URL` (default `http://localhost:3001`).
 Incluye:
 
 - Login, registro y guards de sesión (`RequireAuth`, `PublicOnlyRoute`).
-- Mapa a pantalla completa con MapLibre + h3-js y reclamo de celdas por
-  ubicación.
+- Mapa a pantalla completa con MapLibre + h3-js, reclamo de celdas por
+  ubicación y locales adheridos con sus promos.
 - Ranking, canjes y perfil con edición de email.
 - PWA: manifest, service worker, prompt de instalación, modo offline y
   barra de navegación inferior en mobile.

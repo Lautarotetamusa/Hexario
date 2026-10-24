@@ -400,6 +400,28 @@ a {
   margin: 0 auto;
 }
 
+/* Promos del local seleccionado en el mapa. */
+.hx-business-promos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hx-business-promo {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--hx-fs-body);
+}
+
+.hx-business-promo span:last-child {
+  color: var(--hx-ink-2);
+  white-space: nowrap;
+}
+
 /* En pantallas anchas la app se comporta como una columna centrada: el mapa
    sigue de fondo y la hoja no se estira de lado a lado. */
 @media (min-width: 640px) {
