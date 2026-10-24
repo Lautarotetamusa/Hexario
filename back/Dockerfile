@@ -12,6 +12,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 COPY tsconfig.json ./
 COPY src/ src/
+COPY seeders/ seeders/
 RUN npm run build
 
 # ---------------------------------------------------------------------------
