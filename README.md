@@ -1,11 +1,22 @@
 # Hexario
 
-Base full-stack para la hackathon, armada con el stack y la arquitectura con
-la que trabajamos en Thorque:
+MVP de conquista territorial en Rosario, armado con el stack y la
+arquitectura con la que trabajamos en Thorque:
 
-- **`back/`**: API con usuarios (registro, login JWT, perfil).
-- **`app/`**: PWA instalable con React + Vite, login/registro y sistema de
-  diseño.
+- **`back/`**: API con usuarios (registro, login JWT, perfil) y territorios
+  (grilla H3 y reclamos).
+- **`app/`**: PWA instalable con React + Vite; mapa, ranking, canjes y
+  sistema de diseño propio.
+
+El mapa muestra celdas H3 de **resolución 9**. Un usuario autenticado activa
+su ubicación y reclama automáticamente una celda libre cuando entra en ella.
+El servidor guarda al primer dueño en PostgreSQL.
+
+Esta versión usa una cobertura rectangular **aproximada** de Rosario. Las
+coordenadas y la precisión llegan del navegador y todavía no son una prueba
+antifraude. La propiedad no vence ni se disputa; temporadas y renta del
+[SRS](SRS_CONQUISTA_TERRITORIAL_ROSARIO.md) son etapas posteriores.
+La geolocalización del navegador requiere `localhost` o HTTPS.
 
 No incluye los módulos de negocio de Epublit (AFIP, facturación, libros,
 clientes, etc.).
@@ -24,6 +35,7 @@ clientes, etc.).
 - **JWT** (`jsonwebtoken`) + **bcrypt**
 - **React 19 + Vite** para la app
 - **PWA**: manifest, service worker, instalación y pantalla offline
+- **MapLibre GL + h3-js** para la grilla de resolución 9
 - **Vitest + Supertest** para tests del back
 
 ## Estructura del repo
@@ -32,7 +44,8 @@ clientes, etc.).
 .
 ├── back/                     API (Express + Drizzle + Postgres)
 │   ├── src/
-│   │   ├── modules/user/     único módulo de negocio
+│   │   ├── modules/user/     usuarios y autenticación
+│   │   ├── modules/territory/  grilla y reclamos
 │   │   ├── lib/auth/         firma/verificación de JWT
 │   │   ├── lib/http/         sobre de respuestas + manejo de errores
 │   │   ├── db/               client de Drizzle, schema barrel y migrate
@@ -45,7 +58,7 @@ clientes, etc.).
 │   ├── test/                 tests de integración
 │   └── ARCHITECTURE.md       detalle de la arquitectura por módulo
 ├── app/                      PWA React + Vite
-│   ├── src/features/         auth, home, profile, pwa
+│   ├── src/features/         auth, map, ranking, rewards, profile, pwa
 │   ├── src/design-system/    tokens + componentes + readme
 │   ├── public/               manifest, service worker e iconos
 │   └── README.md
@@ -54,8 +67,14 @@ clientes, etc.).
 ├── .claude/                  agentes, hooks y skills para Claude Code
 ├── CLAUDE.md                 reglas de estilo del código
 ├── AGENTS.md                 instrucciones rápidas para agentes
-└── docker-compose.yml        Postgres + API
+└── docker-compose.yml        Postgres + API + app
 ```
+
+`app/` contiene la PWA que ve el jugador: mapa, ranking, canjes y perfil.
+Consulta la API por HTTP. `back/` contiene la API, las reglas de reclamo, la
+autenticación, las migraciones y las pruebas. PostgreSQL guarda los usuarios
+y los reclamos. El contrato de territorios está en
+[`back/docs/territories.md`](back/docs/territories.md).
 
 ## Levantarlo con Docker (recomendado)
 
@@ -127,6 +146,9 @@ que pongas en `back/.env` y ajustá `DB_PORT` (por defecto el ejemplo usa
 | `POST` | `/user/login` | no | `{ username, password }` |
 | `GET` | `/user` | sí (Bearer) | — |
 | `PUT` | `/user` | sí (Bearer) | `{ email }` (parcial) |
+| `GET` | `/territories?bbox=sur,oeste,norte,este` | no | — |
+| `GET` | `/territories/mine` | sí (Bearer) | — |
+| `POST` | `/territories/claim` | sí (Bearer) | `{ latitude, longitude, accuracy, recordedAt }` |
 
 El login devuelve `{ success, message, token }`; el resto de las respuestas
 usa el sobre `{ success, message?, data }` o
@@ -165,7 +187,9 @@ La app consume el back en `VITE_API_URL` (default `http://localhost:3001`).
 Incluye:
 
 - Login, registro y guards de sesión (`RequireAuth`, `PublicOnlyRoute`).
-- Inicio, perfil con edición de email e instrucciones de instalación.
+- Mapa a pantalla completa con MapLibre + h3-js y reclamo de celdas por
+  ubicación.
+- Ranking, canjes y perfil con edición de email.
 - PWA: manifest, service worker, prompt de instalación, modo offline y
   barra de navegación inferior en mobile.
 - Sistema de diseño propio en `app/src/design-system/` (tokens + componentes).
@@ -176,7 +200,9 @@ Rutas:
 |---|---|
 | `/login` | Ingreso |
 | `/registro` | Alta de cuenta |
-| `/` | Inicio |
+| `/` | Mapa |
+| `/canjes` | Recompensas |
+| `/ranking` | Ranking |
 | `/perfil` | Datos de cuenta + edición de email |
 | `/instalar` | Cómo instalar la PWA |
 
@@ -199,6 +225,12 @@ npm run preview
 Detalle de la app y del sistema de diseño en
 [`app/README.md`](app/README.md) y
 [`app/src/design-system/readme.md`](app/src/design-system/readme.md).
+
+El mapa consulta sólo el área visible. Si supera 1200 celdas, el backend
+pide acercar el zoom. Un reclamo exige una muestra de hasta 50 m de error
+informado y 30 segundos de antigüedad. Devuelve `201` al conquistar, `200`
+si la celda ya era propia y `409` si la tomó otro usuario. El ID H3 es clave
+primaria: dos solicitudes concurrentes no pueden crear dos dueños.
 
 ## Variables de entorno
 
@@ -308,10 +340,10 @@ los agentes están en [`CLAUDE.md`](CLAUDE.md) y, para React,
 
 Incluido:
 
-- Back: alta, login, perfil y edición de usuario; JWT; migración inicial;
-  seed; tests de integración.
-- App: PWA instalable con React + Vite; login/registro; inicio; perfil;
-  modo offline; sistema de diseño; layout responsive.
+- Back: alta, login, perfil y edición de usuario; territorios (grilla H3 y
+  reclamos); JWT; migraciones; seed; tests de integración.
+- App: PWA instalable con React + Vite; login/registro; mapa; ranking;
+  canjes; perfil; modo offline; sistema de diseño; layout responsive.
 - Dockerfile + compose para Postgres, API y app.
 - Tooling: ESLint/madge/jscpd en back, oxlint en app, Drizzle Studio.
 - Agentes/comandos de OpenCode y Claude Code.

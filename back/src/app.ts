@@ -15,6 +15,7 @@ export function createApp(container: Container): Express {
     app.use(express.urlencoded({ extended: true }));
 
     app.use('/user', container.user.router);
+    app.use('/territories', container.territory.router);
 
     app.use(handleErrors);
 
