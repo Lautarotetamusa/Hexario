@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1a18" />
+    <title>Hexario — Rosario se conquista caminando</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/style.css" />
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="/app.js"></script>
+</head>
+<body>
+    <div class="shell">
+        <aside class="panel">
+            <header class="brand">
+                <div class="brand-mark" aria-hidden="true">⬡</div>
+                <div><strong>hexario</strong><span>ROSARIO · SANTA FE</span></div>
+            </header>
+
+            <section class="intro">
+                <div class="eyebrow"><span class="live-dot"></span> LA CIUDAD ES TU TABLERO</div>
+                <h1>Caminá.<br /><em>Conquistá.</em><br />Repetí.</h1>
+                <p>Explorá Rosario hexágono por hexágono. Al entrar en una celda libre con tu ubicación activada, pasa a ser tuya.</p>
+            </section>
+
+            <section class="card profile-card" id="account-card">
+                <div class="section-heading"><span>01 / TU PERFIL</span><span class="tiny-hex">⬡</span></div>
+                <div id="logged-out">
+                    <div class="tab-row" role="tablist" aria-label="Acceso">
+                        <button class="tab active" id="login-tab" type="button">Ingresar</button>
+                        <button class="tab" id="register-tab" type="button">Crear cuenta</button>
+                    </div>
+                    <form id="auth-form">
+                        <label for="username">Usuario</label>
+                        <input id="username" name="username" autocomplete="username" required maxlength="25" placeholder="Tu nombre de jugador" />
+                        <label id="email-label" for="email" hidden>Email</label>
+                        <input id="email" name="email" type="email" autocomplete="email" placeholder="vos@ejemplo.com" hidden />
+                        <label for="password">Contraseña</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+                        <button class="button button-primary" id="auth-submit" type="submit">Entrar al juego <span>↗</span></button>
+                    </form>
+                </div>
+                <div id="logged-in" hidden>
+                    <div class="player-row"><div class="avatar" id="avatar">H</div><div><strong id="player-name">Jugador</strong><small>Explorador de Rosario</small></div></div>
+                    <div class="score"><strong id="territory-count">0</strong><span>HEXÁGONOS<br />CONQUISTADOS</span></div>
+                    <button class="button button-quiet" id="logout" type="button">Cerrar sesión ↗</button>
+                </div>
+            </section>
+
+            <section class="card location-card">
+                <div class="section-heading"><span>02 / SALÍ A EXPLORAR</span><span class="tiny-hex">⌖</span></div>
+                <h2>Tu ubicación abre el juego.</h2>
+                <p>Activala mientras caminás. El servidor confirma cada conquista; necesitás conexión y una ubicación reciente.</p>
+                <button class="button button-location" id="location-button" type="button"><span class="pulse-icon">◎</span> Activar ubicación</button>
+                <p class="location-state" id="location-state">Ubicación desactivada</p>
+            </section>
+
+            <footer class="panel-footer"><span>H3 / RESOLUCIÓN 09</span><span>HECHO PARA CAMINAR ↗</span></footer>
+        </aside>
+
+        <main class="map-section">
+            <div id="map" role="application" aria-label="Mapa de hexágonos de Rosario"></div>
+            <div class="map-topbar"><div class="map-title"><span class="mini-logo">⬡</span><div><strong>Mapa de conquista</strong><small>Rosario, Argentina</small></div></div><div class="map-chip"><span class="live-dot"></span> EN VIVO</div></div>
+            <div class="map-bottom"><div class="legend"><div><span class="legend-dot free"></span> Libre</div><div><span class="legend-dot mine"></span> Tuyo</div><div><span class="legend-dot occupied"></span> Ocupado</div></div><button class="center-button" id="center-button" type="button" aria-label="Centrar en mi ubicación" title="Centrar en mi ubicación">⌖</button></div>
+            <div class="hint" id="map-hint">Acercá el mapa para ver las celdas</div>
+            <div class="cell-detail" id="cell-detail" hidden><div class="detail-top"><span>HEXÁGONO</span><button id="close-detail" type="button" aria-label="Cerrar detalle">×</button></div><strong id="detail-id">—</strong><p id="detail-status">—</p></div>
+            <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+        </main>
+    </div>
+</body>
+</html>

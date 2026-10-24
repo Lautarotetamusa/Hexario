@@ -1,9 +1,15 @@
 # Hexario
 
-Base de backend para la hackathon, armada con el stack y la arquitectura con
-la que trabajamos en Thorque. Está recortada a **usuarios**: registro, login
-con JWT, perfil y edición de email. No incluye los módulos de negocio de
-Epublit (AFIP, facturación, libros, clientes, etc.).
+MVP de conquista territorial en Rosario. El mapa muestra celdas H3 de
+**resolución 9**. Un usuario autenticado activa su ubicación y reclama
+automáticamente una celda libre cuando entra en ella. El servidor guarda
+al primer dueño en PostgreSQL.
+
+Esta versión usa una cobertura rectangular **aproximada** de Rosario. Las
+coordenadas y la precisión llegan del navegador y todavía no son una prueba
+antifraude. La propiedad no vence ni se disputa; temporadas, renta y canjes
+del [SRS](SRS_CONQUISTA_TERRITORIAL_ROSARIO.md) son etapas posteriores.
+La geolocalización del navegador requiere `localhost` o HTTPS.
 
 ## Stack
 
@@ -14,6 +20,8 @@ Epublit (AFIP, facturación, libros, clientes, etc.).
 - **bradb** para el CRUD base (`ServiceBuilder`) y los errores de servicio
 - **JWT** (`jsonwebtoken`) + **bcrypt**
 - **Vitest + Supertest** para tests
+- **h3-js** para la grilla de resolución 9
+- **Leaflet + OpenStreetMap** para el mapa web
 
 ## Estructura del repo
 
@@ -21,7 +29,8 @@ Epublit (AFIP, facturación, libros, clientes, etc.).
 .
 ├── back/                     API (Express + Drizzle + Postgres)
 │   ├── src/
-│   │   ├── modules/user/     único módulo de negocio
+│   │   ├── modules/user/     usuarios y autenticación
+│   │   ├── modules/territory/  grilla y reclamos
 │   │   ├── lib/auth/         firma/verificación de JWT
 │   │   ├── lib/http/         sobre de respuestas + manejo de errores
 │   │   ├── db/               client de Drizzle, schema barrel y migrate
@@ -34,12 +43,19 @@ Epublit (AFIP, facturación, libros, clientes, etc.).
 │   ├── test/                 tests de integración
 │   └── ARCHITECTURE.md       detalle de la arquitectura por módulo
 ├── specs/                    planes/diseños del flujo de agentes
+├── front/                    interfaz web del mapa
 ├── .opencode/                agentes y comandos para OpenCode
 ├── .claude/                  agentes, hooks y skills para Claude Code
 ├── CLAUDE.md                 reglas de estilo del código
 ├── AGENTS.md                 instrucciones rápidas para agentes
-└── docker-compose.yml        Postgres + API
+└── docker-compose.yml        Postgres + API + front
 ```
+
+`front/` contiene la interfaz que ve el jugador: HTML, estilos y JavaScript
+del mapa. Consulta la API por HTTP y se sirve como archivos estáticos.
+`back/` contiene la API, las reglas de reclamo, la autenticación, las
+migraciones y las pruebas. PostgreSQL guarda los usuarios y reclamos. El
+contrato entre ambas carpetas está en [`back/docs/territories.md`](back/docs/territories.md).
 
 ## Levantarlo con Docker (recomendado)
 
@@ -51,9 +67,9 @@ ln -sfn back/.env .env          # docker compose lee el .env de la raíz
 docker compose up --build
 ```
 
-Eso levanta Postgres en `localhost:5433`, corre las migraciones y arranca la
-API en `http://localhost:3001`. La primera vez puede tardar unos minutos
-porque compila la imagen.
+Eso levanta Postgres en `localhost:5433`, corre las migraciones, arranca la
+API en `http://localhost:3001` y sirve el front en `http://localhost:8080`.
+La primera vez puede tardar unos minutos porque compila la imagen.
 
 Para bajarlo:
 
@@ -94,6 +110,9 @@ que pongas en `back/.env` y ajustá `DB_PORT` (por defecto el ejemplo usa
 | `POST` | `/user/login` | no | `{ username, password }` |
 | `GET` | `/user` | sí (Bearer) | — |
 | `PUT` | `/user` | sí (Bearer) | `{ email }` (parcial) |
+| `GET` | `/territories?bbox=sur,oeste,norte,este` | no | — |
+| `GET` | `/territories/mine` | sí (Bearer) | — |
+| `POST` | `/territories/claim` | sí (Bearer) | `{ latitude, longitude, accuracy, recordedAt }` |
 
 El login devuelve `{ success, message, token }`; el resto de las respuestas
 usa el sobre `{ success, message?, data }` o
@@ -125,6 +144,12 @@ curl -X PUT http://localhost:3001/user \
 La colección de Bruno está en `back/docs/` (`Auth/Register`, `Auth/Login`,
 `Auth/Get me`, `Auth/Update`). El contrato generado de rutas está en
 `back/docs/api.md`.
+
+El mapa consulta sólo el área visible. Si supera 1200 celdas, el backend
+pide acercar el zoom. Un reclamo exige una muestra de hasta 50 m de error
+informado y 30 segundos de antigüedad. Devuelve `201` al conquistar, `200`
+si la celda ya era propia y `409` si la tomó otro usuario. El ID H3 es clave
+primaria: dos solicitudes concurrentes no pueden crear dos dueños.
 
 ## Variables de entorno
 
@@ -217,11 +242,10 @@ El flujo y el formato de `design.md` / `plan.md` están explicados en
 [`specs/README.md`](specs/README.md). Las reglas de estilo que siguen todos
 los agentes están en [`CLAUDE.md`](CLAUDE.md).
 
-> La base actual es **solo backend**. Los agentes de front están incluidos
-> para cuando agreguen `/front`, pero hasta que exista
-> `front/src/design-system/` los hooks van a bloquear su ejecución (es
-> intencional). Los hooks de Claude Code usan `jq`; si no lo tenés,
-> instalalo (`sudo apt install jq`) antes de usar ese harness.
+> El front mínimo del mapa vive en `/front`. El flujo automatizado de diseño
+> frontend sigue esperando `/front/src/design-system/`; sus hooks bloquearán
+> esa etapa hasta que se agregue esa estructura. Los hooks de Claude Code
+> usan `jq`.
 
 ## Alcance de esta base
 
@@ -229,9 +253,9 @@ Incluido:
 
 - Alta, login, perfil y edición de usuario.
 - JWT con middleware `auth`.
-- Migración inicial de `users`.
+- Migraciones de `users` y `territory_claims`.
 - Seed de usuarios de prueba.
-- Tests de integración del flujo completo.
-- Dockerfile + compose para Postgres y API.
+- Tests de integración de usuarios y reclamos, incluida una carrera concurrente.
+- Dockerfile + compose para Postgres, API y front.
 - Tooling: ESLint con reglas locales, madge, jscpd, Drizzle Studio.
 - Agentes/comandos de OpenCode y Claude Code.

@@ -11,6 +11,10 @@ set -a
 source .env
 set +a
 
+# Dentro de Docker el host/puerto de Postgres difieren de los publicados en el host.
+export DB_HOST="${TEST_DB_HOST:-$DB_HOST}"
+export DB_PORT="${TEST_DB_PORT:-$DB_PORT}"
+
 TEST_DB_NAME="${TEST_DB_NAME:-${DB_NAME}_test}"
 export PGPASSWORD="$DB_PASS"
 

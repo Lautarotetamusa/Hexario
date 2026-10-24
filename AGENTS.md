@@ -11,8 +11,8 @@ Antes de tocar código, leé:
 
 Reglas rápidas:
 
-- El único módulo de negocio de esta base es `user`; para uno nuevo, seguí
-  la estructura de `back/src/modules/user/`.
+- Los módulos de negocio actuales son `user` y `territory`; para uno nuevo,
+  seguí la estructura de `back/src/modules/user/`.
 - Las reglas de negocio van en el `service`, las queries en el
   `repository` y el `controller` sólo adapta HTTP.
 - Después de tocar rutas: `npm run docs:api` dentro de `back/`.

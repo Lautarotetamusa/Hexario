@@ -20,8 +20,8 @@ Nada fuera de `src/modules/<x>/index.ts` importa el interior de otro
 módulo, salvo `*.schema.ts` (ver más abajo). Esa regla es la que evita
 ciclos de imports.
 
-El único módulo de negocio de esta base es `user` (registro, login, perfil
-y edición de email). `lib/auth/auth.ts` firma/verifica el JWT y deja
+Los módulos de negocio actuales son `user` (registro, login y perfil) y
+`territory` (grilla H3 y reclamos). `lib/auth/auth.ts` firma/verifica el JWT y deja
 `{ id }` en `res.locals.user`; `lib/http/` centraliza el sobre de respuesta
 y el manejo de errores.
 
