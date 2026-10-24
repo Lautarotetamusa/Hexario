@@ -66,6 +66,7 @@ export function MapPage() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const claimingRef = useRef(false);
   const lastClaimCellRef = useRef<string | null>(null);
+  const pendingClaimRef = useRef<string | null>(null);
   const lastClaimAtRef = useRef(0);
   const hasCenteredRef = useRef(false);
 
@@ -100,6 +101,7 @@ export function MapPage() {
   }, [data, username, selected]);
 
   const handleSelectHex = useCallback((h3: string | null) => {
+    pendingClaimRef.current = null;
     setSelected(h3);
     if (h3) setSnap((current) => (current === 'min' ? 'mid' : current));
   }, []);
@@ -200,6 +202,20 @@ export function MapPage() {
     if (position.accuracy > 50) return;
 
     const cell = latLngToCell(position.latitude, position.longitude, HEX_RESOLUTION);
+    const pending = pendingClaimRef.current;
+
+    // Si la persona tocó "Reclamar" sobre un hexágono, esperamos a que su
+    // ubicación entre en esa celda y recién ahí disparamos el claim.
+    if (pending) {
+      if (cell !== pending) return;
+      pendingClaimRef.current = null;
+      if (claimingRef.current) return;
+      lastClaimCellRef.current = cell;
+      lastClaimAtRef.current = Date.now();
+      void attemptClaim(position);
+      return;
+    }
+
     if (cell === lastClaimCellRef.current) return;
     if (Date.now() - lastClaimAtRef.current < ACTION_COOLDOWN_MS) return;
 
@@ -218,6 +234,7 @@ export function MapPage() {
     if (active) {
       stop();
       lastClaimCellRef.current = null;
+      pendingClaimRef.current = null;
       setLocationMessage(null);
       toast('Caminata detenida');
       return;
@@ -243,14 +260,28 @@ export function MapPage() {
 
     if (selectedState === 'free') {
       if (!position) {
+        pendingClaimRef.current = selectedDescriptor.h3;
         start();
         setLocationMessage('Activando ubicación para reclamar…');
         return;
       }
 
+      if (position.accuracy > 50) {
+        pendingClaimRef.current = selectedDescriptor.h3;
+        setLocationMessage(`Esperando mejor precisión (${Math.round(position.accuracy)} m)`);
+        return;
+      }
+
       const cell = latLngToCell(position.latitude, position.longitude, HEX_RESOLUTION);
       if (cell !== selectedDescriptor.h3) {
-        toast('Tenés que estar dentro de este hexágono');
+        pendingClaimRef.current = selectedDescriptor.h3;
+        const distance = selectedDescriptor.distanceM;
+        setLocationMessage(
+          distance > 0
+            ? `Estás a ${distance} m. Acercate al hexágono para reclamarlo.`
+            : 'Acercate al hexágono para reclamarlo.',
+        );
+        toast('Acercate al hexágono seleccionado');
         return;
       }
 
@@ -343,7 +374,7 @@ export function MapPage() {
           <>
             <div className="hx-sheet__row" style={{ alignItems: 'center' }}>
               <span className="hx-label">Hexágono</span>
-              <IconButton aria-label="Cerrar tarjeta" variant="subtle" onClick={() => setSelected(null)}>
+              <IconButton aria-label="Cerrar tarjeta" variant="subtle" onClick={() => handleSelectHex(null)}>
                 <IconClose size={18} />
               </IconButton>
             </div>
