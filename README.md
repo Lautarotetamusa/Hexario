@@ -256,9 +256,9 @@ VITE_API_URL=https://<tu-tunel-api> npm run build
 npm run preview -- --host 0.0.0.0 --port 8080
 ```
 
-También podés dejar la URL en `app/.env.local` (ignorado por git); tiene
-prioridad sobre `.env` y evita que un `npm run build` vuelva a apuntar a
-`localhost`.
+Para que `npm run dev` siga usando el back local, dejá la URL del túnel en
+`app/.env.production.local` (ignorado por git): se usa sólo en
+`npm run build`, no en desarrollo.
 
 Para probar el build de producción y la instalación:
 
