@@ -2,7 +2,7 @@
 // instalable. No cachea respuestas de la API a propósito: los datos siempre
 // se piden a la red, sólo el shell (HTML, JS, CSS, fuentes, imágenes) se
 // guarda en el dispositivo.
-const CACHE = "hexario-shell-v3";
+const CACHE = "hexario-shell-v4";
 
 // El SW se sirve desde /app/sw.js en producción. Resolver el shell contra su
 // propia ubicación hace que funcione igual en local (donde vive en /).

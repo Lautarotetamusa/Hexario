@@ -4,7 +4,9 @@ import type { BaseStyleOptions } from '../../design-system';
 
 // MapLibre 6 resuelve su worker junto al módulo; con un bundler eso apunta a
 // un archivo que no existe. Vite lo emite como asset y acá se le pasa la URL.
-setWorkerUrl(workerUrl);
+// El query es cache-busting: una versión anterior se sirvió con MIME
+// incorrecto y quedó cacheada como immutable en algunos navegadores.
+setWorkerUrl(`${workerUrl}?v=2`);
 
 /** Configuración única del mapa: cambiar de proveedor de teselas es tocar sólo esto. */
 export const MAP_CENTER_LATLNG = { lat: -32.9468, lng: -60.6393 } as const;
