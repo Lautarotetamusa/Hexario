@@ -20,7 +20,10 @@ import { join } from "node:path"
 const DESIGN_SYSTEM_AGENTS = new Set(["front-designer", "front-implementer"])
 
 function projectRoot(ctx: any): string {
-  return ctx?.location?.project?.canonical ?? ctx?.location?.directory ?? process.cwd()
+  // La sesión vive en Hexario, que está anidado dentro del workspace
+  // /home/teti/Archivos. Si usáramos `project.canonical` buscaríamos
+  // /home/teti/Archivos/app/... y el guard daría un falso negativo.
+  return ctx?.location?.directory ?? ctx?.location?.project?.canonical ?? process.cwd()
 }
 
 function checkDesignSystem(root: string): string | undefined {

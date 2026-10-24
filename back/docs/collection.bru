@@ -1,5 +1,5 @@
 meta {
-  name: Hexario
+  name: Hexario API
 }
 
 auth {
@@ -18,9 +18,80 @@ vars:pre-request {
 docs {
   # Hexario API
 
-  ## Cómo autenticarse
+  Colección Bruno de la API actual de Hexario. Base URL local:
+  `http://localhost:3001`.
 
-  Correr `Auth/Login` (o `Auth/Register` si todavía no existe el usuario) —
-  el script post-response guarda el token en la variable de colección `token`,
-  que el resto de los requests usan automáticamente vía `auth: inherit`/bearer.
+  ## Autenticación
+
+  La API usa JWT con esquema Bearer.
+
+  1. Correr `Auth/Register` para crear un usuario de prueba, o usar uno de
+     los usuarios del seed.
+  2. Correr `Auth/Login`. El script post-response guarda el token en la
+     variable de colección `token`.
+  3. Los requests protegidos (`User/Get me`, `User/Update`) usan
+     `auth: inherit` y envían `Authorization: Bearer {{token}}`.
+
+  ## Usuarios del seed
+
+  | Username | Password |
+  |---|---|
+  | `usuario_uno` | `seed12345` |
+  | `usuario_dos` | `seed12345` |
+
+  ## Formato de respuesta
+
+  Respuesta exitosa:
+
+      {
+        "success": true,
+        "message": "opcional",
+        "data": { ... }
+      }
+
+  El login es la excepción: devuelve `token` en el nivel superior y no
+  devuelve `data`.
+
+      {
+        "success": true,
+        "message": "login exitoso",
+        "token": "eyJ..."
+      }
+
+  Respuesta de error:
+
+      {
+        "success": false,
+        "errors": [
+          { "code": "Unauthorized", "message": "..." }
+        ]
+      }
+
+  ## Endpoints
+
+  | Método | Ruta | Auth | Descripción |
+  |---|---|---|---|
+  | POST | `/user/register` | No | Alta de usuario |
+  | POST | `/user/login` | No | Login y emisión de JWT |
+  | GET | `/user` | Sí | Datos del usuario autenticado |
+  | PUT | `/user` | Sí | Actualización parcial del email |
+
+  ## Estados frecuentes
+
+  | Código | Cuándo |
+  |---|---|
+  | 200 | Login, lectura o actualización correcta |
+  | 201 | Usuario creado |
+  | 400 | Body inválido, email inválido o username duplicado |
+  | 401 | Token ausente/inválido o contraseña incorrecta |
+  | 404 | Usuario inexistente en el login |
+  | 409 | Conflicto de datos (si aplica) |
+  | 500 | Error interno |
+
+  ## Orden sugerido
+
+  1. `Auth/Register`
+  2. `Auth/Login`
+  3. `User/Get me`
+  4. `User/Update`
 }

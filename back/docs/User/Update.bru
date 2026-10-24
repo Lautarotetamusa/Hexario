@@ -1,0 +1,72 @@
+meta {
+  name: Update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host}}/user
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "bruno@example.com"
+  }
+}
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("devuelve el email actualizado", function () {
+    const body = res.getBody();
+    expect(body.success).to.equal(true);
+    expect(body.data.email).to.equal("bruno@example.com");
+    expect(body.data.password).to.be.undefined;
+  });
+}
+
+docs {
+  # PUT /user
+
+  Actualiza parcialmente el usuario autenticado. Hoy sólo permite cambiar
+  el email.
+
+  - **Auth:** Bearer JWT
+  - **Content-Type:** `application/json`
+  - **Éxito:** `200 OK`
+
+  ## Body
+
+  | Campo | Tipo | Obligatorio | Reglas |
+  |---|---|---|---|
+  | `email` | string | No | Formato de email válido |
+
+  El body es parcial: se puede mandar sólo `email`. Si se manda vacío, no
+  se modifica nada y la API responde `200` con
+  `"El usuario esta igual que antes"`.
+
+  ## Respuesta 200
+
+      {
+        "success": true,
+        "message": "Usuario actualizado correctamente",
+        "data": {
+          "id": 1,
+          "username": "usuario_uno",
+          "email": "bruno@example.com"
+        }
+      }
+
+  ## Errores
+
+  | Código | Caso | Ejemplo |
+  |---|---|---|
+  | 400 | Email inválido | `Invalid email address` |
+  | 401 | Sin token | `Falta el token de autenticación` |
+  | 401 | Token inválido o vencido | `Token inválido o vencido` |
+  | 500 | Error interno | `Internal server error` |
+}

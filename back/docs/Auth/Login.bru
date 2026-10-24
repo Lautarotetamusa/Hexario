@@ -26,3 +26,60 @@ script:post-response {
     console.log("No se encontró token en la respuesta:", body);
   }
 }
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("devuelve un token JWT", function () {
+    const body = res.getBody();
+    expect(body.success).to.equal(true);
+    expect(body.token).to.be.a("string");
+    expect(body.token.split(".")).to.have.length(3);
+  });
+}
+
+docs {
+  # POST /user/login
+
+  Autentica un usuario y emite un JWT.
+
+  - **Auth:** no
+  - **Content-Type:** `application/json`
+  - **Éxito:** `200 OK`
+  - **Efecto:** guarda el token en la variable de colección `token`.
+
+  ## Body
+
+  | Campo | Tipo | Obligatorio |
+  |---|---|---|
+  | `username` | string | Sí |
+  | `password` | string | Sí |
+
+  Por defecto usa el usuario del seed `usuario_uno` / `seed12345`.
+
+  ## Respuesta 200
+
+      {
+        "success": true,
+        "message": "login exitoso",
+        "token": "eyJhbGciOiJIUzI1NiIs..."
+      }
+
+  El token viaja en el nivel superior, no dentro de `data`.
+
+  ## Errores
+
+  | Código | Caso | Ejemplo |
+  |---|---|---|
+  | 400 | Falta username/password | `El campo username es obligatorio` |
+  | 401 | Contraseña incorrecta | `Contraseña incorrecta` |
+  | 404 | Username inexistente | `No existe un usuario con username ...` |
+  | 500 | Error interno | `Internal server error` |
+
+  ## Uso posterior
+
+  Los requests `User/Get me` y `User/Update` toman el token de la variable
+  `token`. Si se corre Login de nuevo, se reemplaza automáticamente.
+}

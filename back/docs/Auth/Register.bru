@@ -12,12 +12,71 @@ post {
 
 body:json {
   {
-    "username": "testing",
+    "username": "{{demoUsername}}",
     "password": "Test1234.",
-    "email": "test@gmail.com"
+    "email": "{{demoEmail}}"
   }
 }
 
+script:pre-request {
+  const suffix = String(Date.now()).slice(-6);
+  bru.setVar("demoUsername", `bruno_${suffix}`);
+  bru.setVar("demoEmail", `bruno_${suffix}@example.com`);
+}
+
+tests {
+  test("responde 201 Created", function () {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("devuelve el usuario creado sin password", function () {
+    const body = res.getBody();
+    expect(body.success).to.equal(true);
+    expect(body.data.username).to.equal(bru.getVar("demoUsername"));
+    expect(body.data.password).to.be.undefined;
+  });
+}
+
 docs {
-  `password` nunca se devuelve en la respuesta.
+  # POST /user/register
+
+  Crea un usuario nuevo.
+
+  - **Auth:** no
+  - **Content-Type:** `application/json`
+  - **Éxito:** `201 Created`
+
+  ## Body
+
+  | Campo | Tipo | Obligatorio | Reglas |
+  |---|---|---|---|
+  | `username` | string | Sí | 3–20 caracteres; único |
+  | `password` | string | Sí | Mínimo 8 caracteres |
+  | `email` | string | Sí | Formato de email; único |
+
+  El request genera un username/email de prueba automáticamente para poder
+  correrlo varias veces sin chocar con usuarios existentes.
+
+  ## Respuesta 201
+
+      {
+        "success": true,
+        "message": "Usuario creado correctamente",
+        "data": {
+          "id": 3,
+          "username": "bruno_123456",
+          "email": "bruno_123456@example.com"
+        }
+      }
+
+  `password` nunca se devuelve.
+
+  ## Errores
+
+  | Código | Caso | Ejemplo |
+  |---|---|---|
+  | 400 | Falta un campo | `El campo username es obligatorio` |
+  | 400 | Email inválido | `Invalid email address` |
+  | 400 | Username duplicado | `Ya existe un usuario con este username` |
+  | 500 | Error interno | `Internal server error` |
 }

@@ -1,0 +1,57 @@
+meta {
+  name: Get me
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/user
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("devuelve el usuario autenticado sin password", function () {
+    const body = res.getBody();
+    expect(body.success).to.equal(true);
+    expect(body.data.id).to.be.a("number");
+    expect(body.data.username).to.be.a("string");
+    expect(body.data.email).to.be.a("string");
+    expect(body.data.password).to.be.undefined;
+  });
+}
+
+docs {
+  # GET /user
+
+  Devuelve los datos del usuario autenticado.
+
+  - **Auth:** Bearer JWT
+  - **Éxito:** `200 OK`
+  - **Requiere:** haber corrido `Auth/Login` para tener `{{token}}`.
+
+  ## Respuesta 200
+
+      {
+        "success": true,
+        "data": {
+          "id": 1,
+          "username": "usuario_uno",
+          "email": "usuario_uno@example.com"
+        }
+      }
+
+  `password` nunca se incluye.
+
+  ## Errores
+
+  | Código | Caso | Ejemplo |
+  |---|---|---|
+  | 401 | Sin token | `Falta el token de autenticación` |
+  | 401 | Token inválido o vencido | `Token inválido o vencido` |
+  | 500 | Error interno | `Internal server error` |
+}
