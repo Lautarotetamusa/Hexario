@@ -5,6 +5,9 @@
 /app/.env
 /app/.env.local
 /app/.env.*.local
+/landing/.env
+/landing/.env.local
+/landing/.env.*.local
 
 # Datos locales de Postgres si se corre con un volumen bind (no es el caso
 # por defecto, pero evita commitear dumps por accidente).
@@ -18,6 +21,7 @@ back/dist/
 back/coverage/
 back/.jscpd-report
 app/dist/
+landing/dist/
 *.tsbuildinfo
 *.log
 
