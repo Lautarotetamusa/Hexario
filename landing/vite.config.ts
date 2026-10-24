@@ -15,5 +15,8 @@ export default defineConfig({
   },
   server: {
     fs: { allow: ['..'] },
+    // ngrok/LAN: Vite bloquea hosts desconocidos en dev.
+    allowedHosts: true,
   },
+  preview: { allowedHosts: true },
 })
