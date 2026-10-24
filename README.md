@@ -278,6 +278,39 @@ en [`back/ARCHITECTURE.md`](back/ARCHITECTURE.md).
 5. Montarlo en `back/src/app.ts`.
 6. `npm run docs:api` y agregar tests en `back/test/`.
 
+## Logs del back
+
+Cada request se registra con método, ruta, status y duración:
+
+```text
+[2026-10-24T17:00:00.000Z] INFO POST /territories/claim 201 42ms
+[2026-10-24T17:00:05.000Z] WARN GET /territories?bbox=... 400 8ms
+```
+
+Si corrés la API en una terminal:
+
+```bash
+cd back
+npm run dev
+```
+
+Los logs salen por esa terminal. Para guardarlos también en archivo:
+
+```bash
+cd back
+npm run dev:log
+# en otra terminal:
+tail -f back/logs/backend.log
+```
+
+Si usás Docker:
+
+```bash
+docker compose logs -f api
+```
+
+El logger no imprime headers ni bodies, así que no filtra tokens ni contraseñas.
+
 ## Tests
 
 ```bash

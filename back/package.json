@@ -48,6 +48,7 @@
     "description": "Backend base de Hexario (Express + Drizzle + Postgres): usuarios, auth JWT y arquitectura por módulos.",
     "scripts": {
         "dev": "nodemon src/index.ts",
+        "dev:log": "mkdir -p logs && nodemon src/index.ts 2>&1 | tee -a logs/backend.log",
         "start:prod": "node dist/src/index.js",
         "build": "rm -rf ./dist/ && tsc && tsc-alias",
         "lint": "eslint src/",

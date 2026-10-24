@@ -2,10 +2,13 @@ import express, { Express } from "express";
 import cors from 'cors';
 import { Container } from "./container";
 import { handleErrors } from "./lib/http/errors";
+import { requestLogger } from "./lib/http/logger";
 import { env } from "./env";
 
 export function createApp(container: Container): Express {
     const app = express();
+
+    app.use(requestLogger);
 
     // Restringido a los orígenes conocidos del front (ver env.CORS_ORIGIN y
     // env.CORS_PORT). `cors()` sin opciones habilitaría cualquier origen.

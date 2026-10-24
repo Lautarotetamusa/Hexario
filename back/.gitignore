@@ -9,6 +9,7 @@ files/*
 
 # Build y artefactos de análisis
 dist/
+logs/
 log.log
 logs.log
 nohup.out
