@@ -1,0 +1,21 @@
+.env
+.prod.env
+
+# Dependencias
+node_modules/
+
+# Archivos que se suben/generan en runtime.
+files/*
+
+# Build y artefactos de análisis
+dist/
+log.log
+logs.log
+nohup.out
+.jscpd-report
+coverage
+
+# Las migraciones reales viven en db/migrations (ver drizzle.config.ts,
+# `out: "./db/migrations"`); cualquier /migrations en la raíz de back/ es
+# de una corrida con un --out distinto al configurado, no la fuente real.
+/migrations

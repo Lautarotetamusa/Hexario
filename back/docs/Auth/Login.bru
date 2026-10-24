@@ -1,0 +1,28 @@
+meta {
+  name: Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/user/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "usuario_uno",
+    "password": "seed12345"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && body.token) {
+    bru.setVar("token", body.token);
+    console.log("Token guardado en la variable de colección 'token'");
+  } else {
+    console.log("No se encontró token en la respuesta:", body);
+  }
+}

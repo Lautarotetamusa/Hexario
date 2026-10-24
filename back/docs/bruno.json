@@ -1,0 +1,6 @@
+{
+    "version": "1",
+    "name": "Hexario",
+    "type": "collection",
+    "ignore": ["node_modules", ".git"]
+}

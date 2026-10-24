@@ -1,0 +1,22 @@
+# Secretos locales: el .env real vive en back/.env. El .env de la raíz es
+# un symlink a ese archivo para que `docker compose` lo lea.
+/back/.env
+/back/.prod.env
+
+# Datos locales de Postgres si se corre con un volumen bind (no es el caso
+# por defecto, pero evita commitear dumps por accidente).
+/postgres/
+
+node_modules/
+**/node_modules/
+
+# Build y artefactos
+back/dist/
+back/coverage/
+back/.jscpd-report
+*.log
+
+# Skill de terceros (impeccable.style), ~18 MB con binario compilado.
+# Se re-provisiona por máquina con .claude/hooks/ensure-impeccable-skill.sh,
+# nunca se commitea.
+**/.claude/skills/impeccable

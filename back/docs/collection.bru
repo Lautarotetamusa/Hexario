@@ -1,0 +1,26 @@
+meta {
+  name: Hexario
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+vars:pre-request {
+  host: http://localhost:3001
+  token:
+}
+
+docs {
+  # Hexario API
+
+  ## Cómo autenticarse
+
+  Correr `Auth/Login` (o `Auth/Register` si todavía no existe el usuario) —
+  el script post-response guarda el token en la variable de colección `token`,
+  que el resto de los requests usan automáticamente vía `auth: inherit`/bearer.
+}

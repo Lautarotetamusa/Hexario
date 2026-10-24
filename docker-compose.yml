@@ -1,0 +1,45 @@
+# Stack mínimo para levantar Hexario: Postgres + API.
+#
+#   cp back/.env.example back/.env
+#   docker compose up --build
+#
+# El .env de la raíz es un symlink a back/.env (una sola fuente de verdad).
+# Si no existe, creá el symlink con: ln -s back/.env .env
+services:
+  postgresdb:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-hexario}
+      POSTGRES_PASSWORD: ${DB_PASS:-hexario}
+      POSTGRES_DB: ${DB_NAME:-hexario}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - hexario_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hexario} -d ${DB_NAME:-hexario}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./back/.env
+    environment:
+      # Dentro de la red de compose, Postgres escucha en su puerto interno.
+      DB_HOST: postgresdb
+      DB_PORT: 5432
+    ports:
+      - "${PORT:-3001}:${PORT:-3001}"
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+    command: sh -c "node dist/src/db/migrate.js && node dist/src/index.js"
+
+volumes:
+  hexario_pgdata:
