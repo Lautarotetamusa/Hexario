@@ -117,7 +117,7 @@ https://hexario.thorque.com.ar/api/   API
 
 GitHub Actions buildea y publica las tres imágenes en GHCR en cada push a
 `main`. La VPS sólo pullea y levanta `infra/docker-compose.yml` (nginx +
-landing + app + API + Postgres). Los pasos, secretos y variables de GitHub
+landing + app + API + Postgres) detrás del Traefik compartido de la VPS. Los pasos, secretos y variables de GitHub
 están en [`infra/README.md`](infra/README.md).
 
 ## Levantarlo en local (sin la imagen de la API)

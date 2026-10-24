@@ -2,13 +2,13 @@
 #
 #   cd infra
 #   cp .env.example .env
-#   # editar .env y generar infra/certs/origin.{pem,key}
 #   docker compose pull
 #   docker compose up -d
 #
 # Las imágenes las publica GitHub Actions en GHCR. Este compose no buildea:
 # sólo pullea y levanta. La landing queda en /, la PWA en /app/ y la API en
-# /api/ detrás de nginx y Cloudflare.
+# /api/. El TLS y el dominio los maneja el Traefik que ya corre en la VPS;
+# este nginx es interno y se descubre por labels en la red edge.
 name: hexario
 
 x-logging: &default-logging
@@ -22,6 +22,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     logging: *default-logging
+    mem_limit: 384m
     environment:
       POSTGRES_USER: ${DB_USER:?definí DB_USER en infra/.env}
       POSTGRES_PASSWORD: ${DB_PASS:?definí DB_PASS en infra/.env}
@@ -41,6 +42,7 @@ services:
     restart: unless-stopped
     init: true
     logging: *default-logging
+    mem_limit: 512m
     env_file:
       - .env
     environment:
@@ -71,6 +73,7 @@ services:
     image: ghcr.io/${IMAGE_OWNER:-lautarotetamusa}/hexario-app:${IMAGE_TAG:-latest}
     restart: unless-stopped
     logging: *default-logging
+    mem_limit: 128m
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
       interval: 10s
@@ -83,6 +86,7 @@ services:
     image: ghcr.io/${IMAGE_OWNER:-lautarotetamusa}/hexario-landing:${IMAGE_TAG:-latest}
     restart: unless-stopped
     logging: *default-logging
+    mem_limit: 128m
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
       interval: 10s
@@ -95,12 +99,21 @@ services:
     image: nginx:1.27-alpine
     restart: unless-stopped
     logging: *default-logging
-    ports:
-      - "80:80"
-      - "443:443"
+    mem_limit: 128m
+    # No publica 80/443: la VPS ya tiene Traefik escuchando ahí. Este nginx
+    # sólo es el router interno de Hexario y Traefik lo descubre por labels.
+    expose:
+      - "80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./certs:/etc/nginx/certs:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=edge"
+      - "traefik.http.routers.hexario.rule=Host(`hexario.thorque.com.ar`)"
+      - "traefik.http.routers.hexario.entrypoints=websecure"
+      - "traefik.http.routers.hexario.tls.certresolver=le"
+      - "traefik.http.routers.hexario.service=hexario"
+      - "traefik.http.services.hexario.loadbalancer.server.port=80"
     depends_on:
       api:
         condition: service_healthy
@@ -115,6 +128,7 @@ services:
       retries: 6
     networks:
       - hexario
+      - edge
 
 volumes:
   hexario_pgdata:
@@ -122,3 +136,6 @@ volumes:
 networks:
   hexario:
     driver: bridge
+  # Red externa que ya usa Traefik en la VPS (ver /opt/onebox/traefik).
+  edge:
+    external: true
