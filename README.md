@@ -1,9 +1,14 @@
 # Hexario
 
-Base de backend para la hackathon, armada con el stack y la arquitectura con
-la que trabajamos en Thorque. Está recortada a **usuarios**: registro, login
-con JWT, perfil y edición de email. No incluye los módulos de negocio de
-Epublit (AFIP, facturación, libros, clientes, etc.).
+Base full-stack para la hackathon, armada con el stack y la arquitectura con
+la que trabajamos en Thorque:
+
+- **`back/`**: API con usuarios (registro, login JWT, perfil).
+- **`app/`**: PWA instalable con React + Vite, login/registro y sistema de
+  diseño.
+
+No incluye los módulos de negocio de Epublit (AFIP, facturación, libros,
+clientes, etc.).
 
 ## Stack
 
@@ -13,7 +18,9 @@ Epublit (AFIP, facturación, libros, clientes, etc.).
 - **Zod** + `drizzle-zod` para validación
 - **bradb** para el CRUD base (`ServiceBuilder`) y los errores de servicio
 - **JWT** (`jsonwebtoken`) + **bcrypt**
-- **Vitest + Supertest** para tests
+- **React 19 + Vite** para la app
+- **PWA**: manifest, service worker, instalación y pantalla offline
+- **Vitest + Supertest** para tests del back
 
 ## Estructura del repo
 
@@ -33,6 +40,11 @@ Epublit (AFIP, facturación, libros, clientes, etc.).
 │   ├── seeders/              usuarios de prueba
 │   ├── test/                 tests de integración
 │   └── ARCHITECTURE.md       detalle de la arquitectura por módulo
+├── app/                      PWA React + Vite
+│   ├── src/features/         auth, home, profile, pwa
+│   ├── src/design-system/    tokens + componentes + readme
+│   ├── public/               manifest, service worker e iconos
+│   └── README.md
 ├── specs/                    planes/diseños del flujo de agentes
 ├── .opencode/                agentes y comandos para OpenCode
 ├── .claude/                  agentes, hooks y skills para Claude Code
@@ -51,9 +63,17 @@ ln -sfn back/.env .env          # docker compose lee el .env de la raíz
 docker compose up --build
 ```
 
-Eso levanta Postgres en `localhost:5433`, corre las migraciones y arranca la
-API en `http://localhost:3001`. La primera vez puede tardar unos minutos
-porque compila la imagen.
+Eso levanta:
+- Postgres en `localhost:5433`
+- API en `http://localhost:3001` (aplica migraciones al arrancar)
+- PWA en `http://localhost:8080`
+
+La primera vez puede tardar unos minutos porque compila las dos imágenes.
+Si querés datos de prueba en Docker, corré el seed una vez:
+
+```bash
+docker compose exec api node dist/seeders/index.js
+```
 
 Para bajarlo:
 
@@ -73,6 +93,15 @@ npm install
 npm run db:migrate:run       # aplica db/migrations
 npm run seed                 # crea usuario_uno y usuario_dos
 npm run dev                  # http://localhost:3001
+```
+
+En otra terminal:
+
+```bash
+cd app
+cp .env.example .env
+npm install
+npm run dev                  # http://localhost:5173
 ```
 
 Si ya tenés un Postgres local, creá la base `hexario` con el usuario/clave
@@ -126,6 +155,47 @@ La colección de Bruno está en `back/docs/` (`Auth/Register`, `Auth/Login`,
 `Auth/Get me`, `Auth/Update`). El contrato generado de rutas está en
 `back/docs/api.md`.
 
+## App PWA (`app/`)
+
+La app consume el back en `VITE_API_URL` (default `http://localhost:3001`).
+Incluye:
+
+- Login, registro y guards de sesión (`RequireAuth`, `PublicOnlyRoute`).
+- Inicio, perfil con edición de email e instrucciones de instalación.
+- PWA: manifest, service worker, prompt de instalación, modo offline y
+  barra de navegación inferior en mobile.
+- Sistema de diseño propio en `app/src/design-system/` (tokens + componentes).
+
+Rutas:
+
+| Ruta | Pantalla |
+|---|---|
+| `/login` | Ingreso |
+| `/registro` | Alta de cuenta |
+| `/` | Inicio |
+| `/perfil` | Datos de cuenta + edición de email |
+| `/instalar` | Cómo instalar la PWA |
+
+Para desarrollo:
+
+```bash
+cd app
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Para probar el build de producción y la instalación:
+
+```bash
+npm run build
+npm run preview
+```
+
+Detalle de la app y del sistema de diseño en
+[`app/README.md`](app/README.md) y
+[`app/src/design-system/readme.md`](app/src/design-system/readme.md).
+
 ## Variables de entorno
 
 Están documentadas y con valores locales en `back/.env.example`. Las
@@ -138,9 +208,11 @@ principales:
 | `DB_USER` / `DB_PASS` / `DB_NAME` | `hexario` | credenciales/base |
 | `PORT` | `3001` | puerto de la API |
 | `HOST` | `http://localhost:3001` | URL pública de la API |
-| `CORS_ORIGIN` | `http://localhost:5173` | orígenes permitidos (coma-separados) |
+| `CORS_ORIGIN` | `http://localhost:5173,http://localhost:8080` | orígenes permitidos (coma-separados) |
 | `JWT_SECRET` | placeholder | **cambialo fuera de local** |
 | `JWT_EXPIRES_IN` | `7d` | vigencia del token |
+| `APP_PORT` | `8080` | puerto donde compose publica la app |
+| `VITE_API_URL` (app) | `http://localhost:3001` | URL del back, horneada en build |
 
 `back/.env` no se versiona. Si agregás una variable nueva, actualizá
 `src/env.ts` (el esquema de Zod) y `back/.env.example`.
@@ -192,6 +264,11 @@ npx tsc --noEmit -p tsconfig.json
 npm run lint
 npm run lint:cycles
 npm run lint:duplicates
+
+cd ../app
+npm run typecheck
+npm run lint
+npm run build
 ```
 
 ## Flujo de agentes
@@ -207,7 +284,7 @@ Hexario. Está duplicado para los dos harness:
 Pasos:
 
 1. `/design-frontend <historia>` → `front-designer` (diseño exploratorio en
-   `/front`; requiere que exista el front y su design system).
+   `/app`, con el sistema de diseño de `app/src/design-system/`).
 2. `/plan-backend <historia o NNN-slug>` → `planner` (plan backend en
    `specs/<NNN>-<slug>/plan.md`).
 3. `/implement-backend <NNN-slug>` → `back-implementer` (implementa el plan
@@ -215,23 +292,22 @@ Pasos:
 
 El flujo y el formato de `design.md` / `plan.md` están explicados en
 [`specs/README.md`](specs/README.md). Las reglas de estilo que siguen todos
-los agentes están en [`CLAUDE.md`](CLAUDE.md).
+los agentes están en [`CLAUDE.md`](CLAUDE.md) y, para React,
+[`app/CLAUDE.md`](app/CLAUDE.md).
 
-> La base actual es **solo backend**. Los agentes de front están incluidos
-> para cuando agreguen `/front`, pero hasta que exista
-> `front/src/design-system/` los hooks van a bloquear su ejecución (es
-> intencional). Los hooks de Claude Code usan `jq`; si no lo tenés,
-> instalalo (`sudo apt install jq`) antes de usar ese harness.
+> Los hooks de Claude Code usan `jq`; si no lo tenés, instalalo
+> (`sudo apt install jq`) antes de usar ese harness. La skill `impeccable`
+> no se versiona (pesa ~18 MB); el hook la copia desde
+> `~/.claude/skills/impeccable` la primera vez que se usa `front-designer`.
 
 ## Alcance de esta base
 
 Incluido:
 
-- Alta, login, perfil y edición de usuario.
-- JWT con middleware `auth`.
-- Migración inicial de `users`.
-- Seed de usuarios de prueba.
-- Tests de integración del flujo completo.
-- Dockerfile + compose para Postgres y API.
-- Tooling: ESLint con reglas locales, madge, jscpd, Drizzle Studio.
+- Back: alta, login, perfil y edición de usuario; JWT; migración inicial;
+  seed; tests de integración.
+- App: PWA instalable con React + Vite; login/registro; inicio; perfil;
+  modo offline; sistema de diseño; layout responsive.
+- Dockerfile + compose para Postgres, API y app.
+- Tooling: ESLint/madge/jscpd en back, oxlint en app, Drizzle Studio.
 - Agentes/comandos de OpenCode y Claude Code.

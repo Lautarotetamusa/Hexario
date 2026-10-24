@@ -1,8 +1,10 @@
-# Stack mínimo para levantar Hexario: Postgres + API.
+# Stack mínimo para levantar Hexario: Postgres + API + PWA.
 #
 #   cp back/.env.example back/.env
+#   ln -sfn back/.env .env
 #   docker compose up --build
 #
+# La app queda en http://localhost:8080 y la API en http://localhost:3001.
 # El .env de la raíz es un symlink a back/.env (una sola fuente de verdad).
 # Si no existe, creá el symlink con: ln -s back/.env .env
 services:

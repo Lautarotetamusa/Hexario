@@ -24,12 +24,12 @@ function projectRoot(ctx: any): string {
 }
 
 function checkDesignSystem(root: string): string | undefined {
-  const designSystem = join(root, "front", "src", "design-system")
+  const designSystem = join(root, "app", "src", "design-system")
   const hasBarrel = existsSync(join(designSystem, "index.ts"))
   const hasReadme = existsSync(join(designSystem, "readme.md"))
   if (hasBarrel && hasReadme) return undefined
   return (
-    "front-designer / front-implementer necesitan front/src/design-system/ " +
+    "front-designer / front-implementer necesitan app/src/design-system/ " +
     "(con su barrel index.ts y readme.md) y no está, o está incompleto. " +
     "Generá/restaurá el sistema de diseño del proyecto antes de correr este agente."
   )

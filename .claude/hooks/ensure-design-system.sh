@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook: antes de dejar arrancar a "front-implementer" o
-# "front-designer" (ambos dependen de front/src/design-system/, ver
-# front/CLAUDE.md y los dos agentes), garantiza que el sistema de diseño
+# "front-designer" (ambos dependen de app/src/design-system/, ver
+# app/CLAUDE.md y los dos agentes), garantiza que el sistema de diseño
 # del proyecto exista. A diferencia de impeccable (ver
 # ensure-impeccable-skill.sh), acá no hay una fuente canónica de la que
 # copiarlo: es contenido propio del proyecto, así que si falta, se bloquea
@@ -16,7 +16,7 @@ if [[ "$subagent_type" != "front-implementer" && "$subagent_type" != "front-desi
 fi
 
 cwd="$(echo "$input" | jq -r '.cwd // ""')"
-design_system="$cwd/front/src/design-system"
+design_system="$cwd/app/src/design-system"
 
 deny() {
     echo "{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"$1\"}}"
@@ -24,5 +24,5 @@ deny() {
 }
 
 if [[ ! -f "$design_system/index.ts" || ! -f "$design_system/readme.md" ]]; then
-    deny "$subagent_type necesita front/src/design-system/ (con su barrel index.ts y readme.md) y no está, o está incompleto. Generá/restaurá el sistema de diseño del proyecto antes de correr este agente."
+    deny "$subagent_type necesita app/src/design-system/ (con su barrel index.ts y readme.md) y no está, o está incompleto. Generá/restaurá el sistema de diseño del proyecto antes de correr este agente."
 fi

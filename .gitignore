@@ -2,6 +2,9 @@
 # un symlink a ese archivo para que `docker compose` lo lea.
 /back/.env
 /back/.prod.env
+/app/.env
+/app/.env.local
+/app/.env.*.local
 
 # Datos locales de Postgres si se corre con un volumen bind (no es el caso
 # por defecto, pero evita commitear dumps por accidente).
@@ -14,6 +17,8 @@ node_modules/
 back/dist/
 back/coverage/
 back/.jscpd-report
+app/dist/
+*.tsbuildinfo
 *.log
 
 # Skill de terceros (impeccable.style), ~18 MB con binario compilado.

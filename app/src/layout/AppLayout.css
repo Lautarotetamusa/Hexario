@@ -1,0 +1,122 @@
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--papel-50);
+}
+
+.app-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    min-height: var(--height-topbar);
+    padding: 0 var(--gutter-page);
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-subtle);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--papel-900);
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.app-nav__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: var(--height-control-sm);
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    transition: var(--transition-control);
+}
+
+.app-nav__item:hover {
+    background: var(--papel-100);
+    color: var(--text-body);
+}
+
+.app-nav__item.active {
+    background: var(--pino-50);
+    color: var(--pino-700);
+    font-weight: var(--weight-semibold);
+}
+
+.app-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+    min-width: 0;
+}
+
+.app-user__name {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-body);
+}
+
+.app-main {
+    flex: 1;
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: var(--gutter-page);
+}
+
+/* En mobile la navegación baja a una barra fija, como en una app instalada:
+   el header queda con marca + sesión y el pulgar llega a las secciones. */
+@media (max-width: 720px) {
+    .app-header {
+        gap: var(--space-4);
+        padding: 0 var(--space-4);
+    }
+
+    .app-user__name {
+        display: none;
+    }
+
+    .app-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        justify-content: space-around;
+        gap: 0;
+        padding: 6px max(8px, env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom));
+        background: var(--surface-card);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .app-nav__item {
+        flex: 1;
+        flex-direction: column;
+        gap: 2px;
+        height: auto;
+        padding: 4px 8px;
+        font-size: var(--text-2xs);
+    }
+
+    .app-main {
+        padding: var(--space-5) var(--space-4) calc(80px + env(safe-area-inset-bottom));
+    }
+}

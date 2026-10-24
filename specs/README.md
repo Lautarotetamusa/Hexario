@@ -21,7 +21,7 @@ Historia de usuario
         │
         ▼
   front-designer ──▶ specs/<NNN>-<slug>/design.md
-        │              (pantalla real en /front + "Datos necesarios")
+        │              (pantalla real en /app + "Datos necesarios")
         ▼
     planner ────────▶ specs/<NNN>-<slug>/plan.md
         │              (plan de tareas backend, a partir de la historia +
@@ -31,7 +31,7 @@ Historia de usuario
 ```
 
 1. **front-designer** recibe la historia, diseña la pantalla/flujo real
-   dentro de `/front` (con datos de muestra si hace falta) y cierra su
+   dentro de `/app` (con datos de muestra si hace falta) y cierra su
    trabajo escribiendo `design.md`. La sección **"Datos necesarios"** de
    ese archivo es el contrato: es lo único que el resto del flujo necesita
    saber sobre el front para seguir. Describe la CAPACIDAD que hace falta

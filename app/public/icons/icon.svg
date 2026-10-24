@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hexario">
+  <rect width="512" height="512" rx="112" fill="#12302F"/>
+  <path d="M256 104 384 176v144l-128 72-128-72V176z" fill="none" stroke="#F9F8F4" stroke-width="22" stroke-linejoin="round"/>
+  <path d="M204 198v116M308 198v116M204 256h104" fill="none" stroke="#F9F8F4" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="12" fill="#5B4BA8"/>
+</svg>
