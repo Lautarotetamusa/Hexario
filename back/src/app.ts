@@ -19,7 +19,11 @@ export function createApp(container: Container): Express {
         corsOrigins.add(`http://localhost:${env.CORS_PORT}`);
         corsOrigins.add(`http://127.0.0.1:${env.CORS_PORT}`);
     }
-    app.use(cors({ origin: [...corsOrigins] }));
+    app.use(cors({
+        origin: [...corsOrigins],
+        // Header usado por la app para saltear el interstitial de ngrok free.
+        allowedHeaders: ["Content-Type", "Authorization", "ngrok-skip-browser-warning"],
+    }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 

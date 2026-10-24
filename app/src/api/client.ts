@@ -57,6 +57,9 @@ export function toQueryString(params: Record<string, QueryValue>): string {
 
 async function request<T>(path: string, method: Method, body?: unknown): Promise<T> {
     const headers: HeadersInit = { "Content-Type": "application/json" };
+    // ngrok free muestra una página HTML de advertencia a los navegadores.
+    // El header la saltea; sólo se envía cuando la API pasa por ngrok.
+    if (API_URL.includes("ngrok")) headers["ngrok-skip-browser-warning"] = "true";
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     const res = await fetch(`${API_URL}${path}`, {
