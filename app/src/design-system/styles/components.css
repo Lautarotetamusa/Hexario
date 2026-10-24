@@ -822,7 +822,8 @@
   border-radius: var(--hx-radius-card);
   background: var(--hx-panel);
   color: var(--hx-ink);
-  font-size: var(--hx-fs-body);
+  /* iOS Safari hace auto-zoom al enfocar inputs con font-size < 16px. */
+  font-size: 16px;
   transition: border-color 120ms var(--hx-ease);
 }
 

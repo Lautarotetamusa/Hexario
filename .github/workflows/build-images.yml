@@ -123,4 +123,8 @@ jobs:
             export IMAGE_TAG
             docker compose pull
             docker compose up -d --remove-orphans
+            # La config de nginx está bind-mounted: si cambió en el repo, el
+            # contenedor que ya estaba corriendo no la recarga solo.
+            docker compose exec -T nginx nginx -t < /dev/null
+            docker compose exec -T nginx nginx -s reload < /dev/null
             docker compose ps
