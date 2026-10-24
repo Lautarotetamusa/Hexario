@@ -75,6 +75,9 @@ docs {
   | POST | `/user/login` | No | Login y emisión de JWT |
   | GET | `/user` | Sí | Datos del usuario autenticado |
   | PUT | `/user` | Sí | Actualización parcial del email |
+  | GET | `/territories` | No | Hexágonos visibles para un bbox (H3 10) |
+  | GET | `/territories/mine` | Sí | Cantidad de hexágonos propios |
+  | POST | `/territories/claim` | Sí | Reclama la celda de la ubicación |
 
   ## Estados frecuentes
 

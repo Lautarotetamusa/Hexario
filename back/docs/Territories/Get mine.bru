@@ -1,0 +1,44 @@
+meta {
+  name: Get mine
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{host}}/territories/mine
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("devuelve un contador", function () {
+    expect(res.getBody().data.count).to.be.a("number");
+  });
+}
+
+docs {
+  # GET /territories/mine
+
+  Devuelve cuántos hexágonos posee el usuario autenticado.
+
+  - **Auth:** Bearer JWT
+  - **Éxito:** `200 OK`
+
+  ## Respuesta 200
+
+      {
+        "success": true,
+        "data": { "count": 2 }
+      }
+
+  ## Errores
+
+  | Código | Caso |
+  |---|---|
+  | 401 | Sin token o token inválido |
+  | 500 | Error interno |
+}

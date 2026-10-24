@@ -18,6 +18,9 @@ Colección de **Bruno** con los endpoints disponibles hoy en el backend.
 | `POST` | `/user/login` | No | Autentica y devuelve un JWT. |
 | `GET` | `/user` | Sí | Devuelve el usuario autenticado. |
 | `PUT` | `/user` | Sí | Actualiza el email del usuario. |
+| `GET` | `/territories?bbox=s,w,n,e` | No | Hexágonos visibles (H3 resolución 10). |
+| `GET` | `/territories/mine` | Sí | Cantidad de hexágonos propios. |
+| `POST` | `/territories/claim` | Sí | Reclama la celda de la ubicación enviada. |
 
 ## Usuarios del seed
 
@@ -99,6 +102,9 @@ curl -X PUT http://localhost:3001/user \
 - `Auth/Login.bru`: login + guardado del token.
 - `User/Get me.bru`: perfil autenticado.
 - `User/Update.bru`: edición de email.
+- `Territories/Get map.bru`: hexágonos visibles para un bbox.
+- `Territories/Get mine.bru`: contador de hexágonos propios.
+- `Territories/Claim.bru`: reclamo de una celda H3.
 - `api.md`: resumen generado desde las rutas (`npm run docs:api`).
 
 La colección incluye tests básicos de status y forma de respuesta, y

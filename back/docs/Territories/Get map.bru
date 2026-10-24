@@ -1,0 +1,66 @@
+meta {
+  name: Get map
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host}}/territories?bbox=-32.952,-60.646,-32.942,-60.632
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("usa H3 resolución 10", function () {
+    expect(res.getBody().data.resolution).to.equal(10);
+  });
+
+  test("devuelve celdas", function () {
+    expect(res.getBody().data.cells).to.be.an("array");
+  });
+}
+
+docs {
+  # GET /territories
+
+  Devuelve los hexágonos visibles para un bounding box.
+
+  - **Auth:** no
+  - **Query:** `bbox=south,west,north,east` en grados WGS84.
+  - **Éxito:** `200 OK`
+  - **Resolución:** H3 10.
+
+  ## Query de ejemplo
+
+      bbox=-32.952,-60.646,-32.942,-60.632
+
+  ## Respuesta 200
+
+      {
+        "success": true,
+        "data": {
+          "resolution": 10,
+          "bounds": { "south": -33.055, "west": -60.81, "north": -32.84, "east": -60.61 },
+          "serverTime": "2026-10-24T13:00:00.000Z",
+          "cells": [
+            {
+              "id": "8ac2eba31457fff",
+              "boundary": [[-32.9464, -60.6392]],
+              "owner": { "username": "usuario_uno" },
+              "claimedAt": "2026-10-24T12:55:00.000Z"
+            }
+          ]
+        }
+      }
+
+  ## Errores
+
+  | Código | Caso |
+  |---|---|
+  | 400 | `bbox` inválido o área demasiado grande (`MAP_AREA_TOO_LARGE`) |
+  | 500 | Error interno |
+}

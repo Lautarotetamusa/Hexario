@@ -1,0 +1,108 @@
+meta {
+  name: Claim
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host}}/territories/claim
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "latitude": -32.9459,
+    "longitude": -60.6401,
+    "accuracy": 10,
+    "recordedAt": "{{nowIso}}"
+  }
+}
+
+script:pre-request {
+  bru.setVar("nowIso", new Date().toISOString());
+}
+
+tests {
+  test("responde 200, 201 o 409 si ya tiene dueño", function () {
+    expect([200, 201, 409]).to.include(res.getStatus());
+    if (res.getStatus() === 409) {
+      expect(res.getBody().errors[0].code).to.equal("TERRITORY_OWNED");
+    }
+  });
+
+  test("devuelve el territorio cuando la operación es válida", function () {
+    if (res.getStatus() === 409) return;
+    expect(res.getBody().data.territory.id).to.be.a("string");
+    expect(res.getBody().data.territory.owner.username).to.be.a("string");
+  });
+}
+
+docs {
+  # POST /territories/claim
+
+  Reclama la celda H3 que contiene la ubicación enviada.
+
+  - **Auth:** Bearer JWT
+  - **Content-Type:** `application/json`
+  - **Éxito:** `201 Created` si la celda estaba libre.
+  - **Ya es tuyo:** `200 OK` con `claimed: false`.
+  - **De otro jugador:** `409 Conflict` con `TERRITORY_OWNED` y el territorio actualizado.
+
+  ## Body
+
+  | Campo | Tipo | Reglas |
+  |---|---|---|
+  | `latitude` | number | WGS84, dentro de Rosario |
+  | `longitude` | number | WGS84, dentro de Rosario |
+  | `accuracy` | number | ≤ 50 metros |
+  | `recordedAt` | ISO-8601 | No más de 30 s de antigüedad |
+
+  El script de pre-request genera `recordedAt` automáticamente.
+
+  ## Respuesta 201
+
+      {
+        "success": true,
+        "message": "Hexágono reclamado",
+        "data": {
+          "claimed": true,
+          "territory": {
+            "id": "8ac2eba31457fff",
+            "boundary": [[-32.9464, -60.6392]],
+            "owner": { "username": "usuario_uno" },
+            "claimedAt": "2026-10-24T13:00:00.000Z"
+          }
+        }
+      }
+
+  ## Respuesta 200 (ya era tuyo)
+
+      {
+        "success": true,
+        "message": "Ya sos dueño de este hexágono",
+        "data": { "claimed": false, "territory": { "...": "..." } }
+      }
+
+  ## Error 409
+
+      {
+        "success": false,
+        "errors": [
+          {
+            "code": "TERRITORY_OWNED",
+            "message": "Este hexágono ya tiene dueño",
+            "territory": { "...": "..." }
+          }
+        ]
+      }
+
+  ## Otros errores
+
+  | Código | Caso |
+  |---|---|
+  | 400 | `LOCATION_STALE`, `LOCATION_INACCURATE`, `OUTSIDE_GAME_AREA` |
+  | 401 | Sin token o token inválido |
+  | 409 | La celda ya pertenece a otro jugador |
+  | 500 | Error interno |
+}
