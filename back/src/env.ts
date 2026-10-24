@@ -24,6 +24,11 @@ const schema = z
         // src/app.ts). Nunca abierto a cualquier origen.
         CORS_ORIGIN: z.string().default("http://localhost:5173"),
 
+        // Puerto del front local que se agrega automáticamente a los
+        // orígenes permitidos (localhost y 127.0.0.1). Sirve para no tener
+        // que editar CORS_ORIGIN cada vez que Vite cambia de puerto.
+        CORS_PORT: z.string().default("5173"),
+
         JWT_SECRET: z.string(),
         JWT_EXPIRES_IN: z.string().default("24h"),
 

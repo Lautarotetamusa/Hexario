@@ -244,7 +244,8 @@ principales:
 | `DB_USER` / `DB_PASS` / `DB_NAME` | `hexario` | credenciales/base |
 | `PORT` | `3001` | puerto de la API |
 | `HOST` | `http://localhost:3001` | URL pública de la API |
-| `CORS_ORIGIN` | `http://localhost:5173,http://localhost:8080` | orígenes permitidos (coma-separados) |
+| `CORS_PORT` | `5173` | puerto del front local; se agrega a CORS como `localhost` y `127.0.0.1` |
+| `CORS_ORIGIN` | `http://localhost:5173,http://localhost:8080` | orígenes adicionales permitidos (coma-separados) |
 | `JWT_SECRET` | placeholder | **cambialo fuera de local** |
 | `JWT_EXPIRES_IN` | `7d` | vigencia del token |
 | `APP_PORT` | `8080` | puerto donde compose publica la app |

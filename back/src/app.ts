@@ -7,10 +7,16 @@ import { env } from "./env";
 export function createApp(container: Container): Express {
     const app = express();
 
-    // Restringido a los orígenes conocidos del front (ver env.CORS_ORIGIN);
-    // `cors()` sin opciones habilita cualquier origen, lo cual no hace falta
-    // acá — esta API nunca se llama desde un origen que no controlemos.
-    app.use(cors({ origin: env.CORS_ORIGIN.split(",").map((o) => o.trim()) }));
+    // Restringido a los orígenes conocidos del front (ver env.CORS_ORIGIN y
+    // env.CORS_PORT). `cors()` sin opciones habilitaría cualquier origen.
+    const corsOrigins = new Set(
+        env.CORS_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean)
+    );
+    if (env.CORS_PORT) {
+        corsOrigins.add(`http://localhost:${env.CORS_PORT}`);
+        corsOrigins.add(`http://127.0.0.1:${env.CORS_PORT}`);
+    }
+    app.use(cors({ origin: [...corsOrigins] }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
