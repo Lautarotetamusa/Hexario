@@ -10,6 +10,10 @@ la que trabajamos en Thorque:
 No incluye los módulos de negocio de Epublit (AFIP, facturación, libros,
 clientes, etc.).
 
+> **Documento de producto:** reglas de negocio, parámetros del juego,
+> historias de usuario y decisiones del MVP en
+> [`PRODUCT.md`](PRODUCT.md).
+
 ## Stack
 
 - **Node + TypeScript** (CommonJS, ts-node en desarrollo)

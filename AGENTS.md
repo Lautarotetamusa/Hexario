@@ -4,6 +4,8 @@ Antes de tocar código, leé:
 
 - [`CLAUDE.md`](CLAUDE.md): reglas de estilo obligatorias (DI, DRY,
   comentarios que expliquen el *por qué*, una responsabilidad por función).
+- [`PRODUCT.md`](PRODUCT.md): reglas de negocio, parámetros del
+  juego, historias de usuario y decisiones del MVP.
 - [`back/ARCHITECTURE.md`](back/ARCHITECTURE.md): capas de un módulo y
   convenciones de schema/repository/service/controller.
 - [`app/CLAUDE.md`](app/CLAUDE.md) y
