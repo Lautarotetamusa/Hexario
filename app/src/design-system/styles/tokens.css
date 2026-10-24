@@ -1,0 +1,174 @@
+/* Hexario — tokens como variables CSS.
+   Tema claro por defecto; oscuro con prefers-color-scheme o con data-theme="dark" en <html>.
+   data-theme="light" fuerza el claro aunque el sistema esté en oscuro. */
+
+:root {
+  color-scheme: light;
+
+  /* Interfaz */
+  --hx-panel: #FFFFFF;
+  --hx-ink: #0D110D;
+  --hx-ink-2: #6B706B;
+  --hx-ink-body: #3E433E;
+  --hx-line: #E6E8E5;
+  --hx-line-strong: #D5D8D4;
+  --hx-surface: #F4F5F3;
+  --hx-action: #0D110D;
+  --hx-on-action: #FFFFFF;
+  --hx-action-pressed: #2B302B;
+  --hx-disabled-bg: #EDEFEC;
+  --hx-disabled-ink: #6B706B;
+
+  /* Estado */
+  --hx-ok-bg: #E4F7EA;
+  --hx-ok-ink: #14713A;
+  --hx-alert-bg: #FDECE9;
+  --hx-alert-ink: #B93A27;
+  --hx-gold-bg: #FFF4D6;
+  --hx-gold-ink: #8A5D10;
+
+  /* Mapa base */
+  --hx-map-ground: #F1F2F0;
+  --hx-map-street: #FFFFFF;
+  --hx-map-water: #DFE4E7;
+  --hx-map-park: #E7ECE5;
+  --hx-map-grid: rgba(13, 17, 13, 0.07);
+
+  /* Jugadores (relleno / borde) */
+  --hx-me: #5EE08A;
+  --hx-me-line: #22B862;
+  --hx-sky: #9ADFFF;
+  --hx-sky-line: #2EA6E8;
+  --hx-coral: #FF8F80;
+  --hx-coral-line: #EC5A45;
+  --hx-violet: #8A5CF6;
+  --hx-violet-line: #6236D9;
+  --hx-neutral: #E6E8E5;
+  --hx-neutral-line: #8E938E;
+  --hx-gold: #FFD166;
+  --hx-gold-line: #E0A63A;
+  --hx-avatar-ink: #0D110D;
+
+  /* Tipografía */
+  --hx-font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --hx-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --hx-fs-hero: 52px;
+  --hx-fs-data: 22px;
+  --hx-fs-title: 22px;
+  --hx-fs-subtitle: 17px;
+  --hx-fs-body: 15px;
+  --hx-fs-caption: 13px;
+  --hx-fs-label: 11px;
+  --hx-fs-label-sm: 10px;
+  --hx-fs-button: 14px;
+  --hx-track-label: 0.12em;
+  --hx-track-label-sm: 0.14em;
+  --hx-track-button: 0.08em;
+
+  /* Espaciado (grilla de 4 px) */
+  --hx-space-1: 4px;
+  --hx-space-2: 8px;
+  --hx-space-3: 12px;
+  --hx-space-4: 16px;
+  --hx-space-5: 20px;
+  --hx-space-6: 24px;
+  --hx-space-8: 32px;
+  --hx-space-10: 40px;
+  --hx-space-12: 48px;
+  --hx-space-16: 64px;
+  --hx-gutter: 20px;
+
+  /* Radios */
+  --hx-radius-pill: 999px;
+  --hx-radius-sheet: 22px;
+  --hx-radius-card: 14px;
+  --hx-radius-sm: 10px;
+
+  /* Tamaños */
+  --hx-touch: 44px;
+  --hx-btn-primary: 56px;
+  --hx-btn-secondary: 48px;
+  --hx-chip: 28px;
+  --hx-nav: 64px;
+
+  /* Sombras */
+  --hx-shadow-float: 0 1px 2px rgba(13, 17, 13, 0.06), 0 6px 20px rgba(13, 17, 13, 0.08);
+  --hx-shadow-sheet: 0 -2px 6px rgba(13, 17, 13, 0.04), 0 -10px 30px rgba(13, 17, 13, 0.08);
+  --hx-shadow-toast: 0 6px 20px rgba(13, 17, 13, 0.16);
+  --hx-panel-border: transparent;
+
+  /* Movimiento */
+  --hx-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --hx-dur-capture: 900ms;
+  --hx-dur-pop: 600ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --hx-panel: #121512;
+    --hx-ink: #F2F5F1;
+    --hx-ink-2: #9AA19A;
+    --hx-ink-body: #C9CEC8;
+    --hx-line: #262B26;
+    --hx-line-strong: #3A403A;
+    --hx-surface: #1B1F1B;
+    --hx-action: #F2F5F1;
+    --hx-on-action: #0D110D;
+    --hx-action-pressed: #DCE0DB;
+    --hx-disabled-bg: #1F231F;
+    --hx-disabled-ink: #8A918A;
+    --hx-ok-bg: #163222;
+    --hx-ok-ink: #7BE3A0;
+    --hx-alert-bg: #3A1A15;
+    --hx-alert-ink: #FF9C8E;
+    --hx-gold-bg: #3A2E12;
+    --hx-gold-ink: #FFD166;
+    --hx-map-ground: #171A17;
+    --hx-map-street: #222622;
+    --hx-map-water: #131B20;
+    --hx-map-park: #172017;
+    --hx-map-grid: rgba(242, 245, 241, 0.07);
+    --hx-violet-line: #9B74FF;
+    --hx-neutral: #3A403A;
+    --hx-neutral-line: #8A918A;
+    --hx-shadow-float: 0 6px 20px rgba(0, 0, 0, 0.5);
+    --hx-shadow-sheet: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    --hx-shadow-toast: 0 6px 20px rgba(0, 0, 0, 0.5);
+    --hx-panel-border: #262B26;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --hx-panel: #121512;
+  --hx-ink: #F2F5F1;
+  --hx-ink-2: #9AA19A;
+  --hx-ink-body: #C9CEC8;
+  --hx-line: #262B26;
+  --hx-line-strong: #3A403A;
+  --hx-surface: #1B1F1B;
+  --hx-action: #F2F5F1;
+  --hx-on-action: #0D110D;
+  --hx-action-pressed: #DCE0DB;
+  --hx-disabled-bg: #1F231F;
+  --hx-disabled-ink: #8A918A;
+  --hx-ok-bg: #163222;
+  --hx-ok-ink: #7BE3A0;
+  --hx-alert-bg: #3A1A15;
+  --hx-alert-ink: #FF9C8E;
+  --hx-gold-bg: #3A2E12;
+  --hx-gold-ink: #FFD166;
+  --hx-map-ground: #171A17;
+  --hx-map-street: #222622;
+  --hx-map-water: #131B20;
+  --hx-map-park: #172017;
+  --hx-map-grid: rgba(242, 245, 241, 0.07);
+  --hx-violet-line: #9B74FF;
+  --hx-neutral: #3A403A;
+  --hx-neutral-line: #8A918A;
+  --hx-shadow-float: 0 6px 20px rgba(0, 0, 0, 0.5);
+  --hx-shadow-sheet: 0 -10px 30px rgba(0, 0, 0, 0.5);
+  --hx-shadow-toast: 0 6px 20px rgba(0, 0, 0, 0.5);
+  --hx-panel-border: #262B26;
+}

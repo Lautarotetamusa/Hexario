@@ -41,7 +41,9 @@ npm run typecheck  # sólo TypeScript
 |---|---|---|
 | `/login` | Ingreso | sólo sin sesión |
 | `/registro` | Alta de cuenta | sólo sin sesión |
-| `/` | Inicio | con sesión |
+| `/` | Mapa (pantalla principal) | con sesión |
+| `/canjes` | Promociones y cupones | con sesión |
+| `/ranking` | Ranking semanal, mensual e histórico | con sesión |
 | `/perfil` | Datos de cuenta + edición de email | con sesión |
 | `/instalar` | Instrucciones de instalación | con sesión |
 
@@ -59,14 +61,16 @@ src/
 ├── design-system/       sistema de diseño (tokens + componentes + readme)
 ├── features/
 │   ├── auth/            login, registro y guards de ruta
-│   ├── home/            pantalla de inicio
+│   ├── map/             mapa MapLibre/H3, mock de territorio y hoja inferior
+│   ├── rewards/         promociones, cupón con QR y mock de canjes
+│   ├── ranking/         ranking por período y mock
 │   ├── profile/         perfil y edición de email
 │   └── pwa/             instalación, offline y service worker helpers
-├── layout/              shell de la app (header + nav + outlet)
-├── lib/                 helpers de errores/formato
-├── notifications/       toasts y confirmaciones
+├── hooks/               useSubmit (estado pending/error de un formulario)
+├── layout/              shell de contenido + nav inferior
+├── lib/                 helpers de errores/formato y validaciones
 ├── App.tsx              rutas
-└── main.tsx             entrypoint + registro del service worker
+└── main.tsx             entrypoint + estilos del sistema + service worker
 ```
 
 ## PWA
@@ -78,8 +82,7 @@ src/
   y `OfflineGate` (pantalla de sin conexión).
 - El service worker se registra sólo en producción (`import.meta.env.PROD`) para
   no cachear el shell de desarrollo de Vite.
-- Los iconos salen de `public/icons/`; el isotipo también se usa en el
-  `BrandLockup` del design system.
+- Los iconos salen de `public/icons/`; el isotipo es el de `HexarioMark`.
 
 Para probar la instalación:
 
@@ -96,11 +99,17 @@ barra de direcciones (o `Instalar app` dentro de la app).
 Está en `src/design-system/` y se importa siempre desde el barrel:
 
 ```tsx
-import { Button, Card, Field, Input } from "../design-system";
+import { Button, Field, HeroNumber, Input } from "../design-system";
 ```
 
 Reglas y catálogo completo: [`src/design-system/readme.md`](src/design-system/readme.md).
 Reglas de estilo React: [`CLAUDE.md`](CLAUDE.md).
+
+## Mapa
+
+`src/features/map/mapConfig.ts` centraliza el proveedor de teselas
+(OpenFreeMap, sin API key), los glifos y el centro inicial en Rosario. El
+worker de MapLibre se emite como asset de Vite para que funcione en el build.
 
 ## Docker
 

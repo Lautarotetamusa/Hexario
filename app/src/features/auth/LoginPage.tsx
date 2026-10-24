@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Alert, Button, Field, Input, PasswordField } from "../../design-system";
+import { Button, Field, FormError, Input, PasswordField } from "../../design-system";
 import { useAuth } from "../../auth/AuthContext";
+import { useSubmit } from "../../hooks/useSubmit";
+import { validateLoginUsername, validateRequiredPassword } from "../../lib/validation";
 import { AuthShell } from "./AuthShell";
 import { redirectTarget } from "./redirectTarget";
-import { useAuthSubmit } from "./useAuthSubmit";
-import { validateLoginUsername, validateRequiredPassword } from "./validation";
 
 type Errors = { username?: string; password?: string };
 
@@ -19,7 +19,7 @@ export function LoginPage() {
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState<Errors>({});
 
-    const { pending, error, submit } = useAuthSubmit(async (input: { username: string; password: string }) => {
+    const { pending, error, submit } = useSubmit(async (input: { username: string; password: string }) => {
         await login(input);
         navigate(redirectTarget(location.state), { replace: true });
     });
@@ -38,39 +38,34 @@ export function LoginPage() {
 
     return (
         <AuthShell eyebrow="Iniciar sesión" title="Entrá a tu cuenta" subtitle="Usá el usuario y la contraseña con los que te registraste.">
-            <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-                {error ? <Alert tone="error" title="No pudimos iniciar tu sesión">{error}</Alert> : null}
+            <form onSubmit={handleSubmit} noValidate className="hx-form">
+                {error ? <FormError title="No pudimos iniciar tu sesión">{error}</FormError> : null}
 
-                <Field label="Usuario" required htmlFor="login-username" error={errors.username}>
+                <Field id="login-username" label="Usuario" required error={errors.username}>
                     <Input
-                        id="login-username"
                         name="username"
-                        iconStart="user-round"
                         autoComplete="username"
                         autoFocus
                         placeholder="tu_usuario"
                         value={username}
-                        invalid={Boolean(errors.username)}
                         onChange={(e) => setUsername(e.target.value)}
                     />
                 </Field>
 
-                <PasswordField
-                    id="login-password"
-                    name="password"
-                    label="Contraseña"
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    error={errors.password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                <Field id="login-password" label="Contraseña" required error={errors.password}>
+                    <PasswordField
+                        name="password"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Field>
 
-                <Button type="submit" fullWidth loading={pending}>
-                    Ingresar
+                <Button type="submit" disabled={pending}>
+                    {pending ? "Ingresando…" : "Ingresar"}
                 </Button>
 
-                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", textAlign: "center" }}>
+                <p className="hx-auth__switch">
                     ¿Todavía no tenés cuenta? <Link to="/registro">Creá una</Link>
                 </p>
             </form>

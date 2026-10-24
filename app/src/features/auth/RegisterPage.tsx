@@ -1,18 +1,17 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Alert, Button, Field, Input, PasswordField } from "../../design-system";
+import { Button, Field, FormError, Input, PasswordField, useToast } from "../../design-system";
 import { useAuth } from "../../auth/AuthContext";
-import { useToast } from "../../notifications/ToastProvider";
+import { useSubmit } from "../../hooks/useSubmit";
+import { validateEmail, validatePassword, validateUsername } from "../../lib/validation";
 import { AuthShell } from "./AuthShell";
-import { useAuthSubmit } from "./useAuthSubmit";
-import { validateEmail, validatePassword, validateUsername } from "./validation";
 
 type Errors = { username?: string; email?: string; password?: string; confirm?: string };
 
 export function RegisterPage() {
     const { register } = useAuth();
-    const { showToast } = useToast();
+    const toast = useToast();
     const navigate = useNavigate();
 
     const [username, setUsername] = useState("");
@@ -21,11 +20,11 @@ export function RegisterPage() {
     const [confirm, setConfirm] = useState("");
     const [errors, setErrors] = useState<Errors>({});
 
-    const { pending, error, submit } = useAuthSubmit(async (input: { username: string; email: string; password: string }) => {
+    const { pending, error, submit } = useSubmit(async (input: { username: string; email: string; password: string }) => {
         await register(input);
         // El alta entra directo al inicio: la sesión ya queda iniciada (ver
         // AuthContext#register), así que no se le pide la contraseña de nuevo.
-        showToast("success", "Tu cuenta quedó creada.");
+        toast("Tu cuenta quedó creada.");
         navigate("/", { replace: true });
     });
 
@@ -45,70 +44,60 @@ export function RegisterPage() {
 
     return (
         <AuthShell eyebrow="Crear cuenta" title="Registrate en un paso" subtitle="Con tu usuario, tu email y una contraseña ya tenés tu cuenta lista.">
-            <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-                {error ? <Alert tone="error" title="No pudimos crear tu cuenta">{error}</Alert> : null}
+            <form onSubmit={handleSubmit} noValidate className="hx-form">
+                {error ? <FormError title="No pudimos crear tu cuenta">{error}</FormError> : null}
 
                 <Field
+                    id="register-username"
                     label="Usuario"
                     required
-                    htmlFor="register-username"
                     error={errors.username}
                     hint="Es el nombre con el que vas a entrar a la app."
                 >
                     <Input
-                        id="register-username"
                         name="username"
-                        iconStart="user-round"
                         autoComplete="username"
                         autoFocus
                         placeholder="tu_usuario"
                         value={username}
-                        invalid={Boolean(errors.username)}
                         onChange={(e) => setUsername(e.target.value)}
                     />
                 </Field>
 
-                <Field label="Email" required htmlFor="register-email" error={errors.email}>
+                <Field id="register-email" label="Email" required error={errors.email}>
                     <Input
-                        id="register-email"
                         name="email"
                         type="email"
                         autoComplete="email"
                         placeholder="vos@ejemplo.com"
                         value={email}
-                        invalid={Boolean(errors.email)}
                         onChange={(e) => setEmail(e.target.value)}
                     />
                 </Field>
 
-                <PasswordField
-                    id="register-password"
-                    name="password"
-                    label="Contraseña"
-                    required
-                    autoComplete="new-password"
-                    hint="Al menos 8 caracteres."
-                    value={password}
-                    error={errors.password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                <Field id="register-password" label="Contraseña" required error={errors.password} hint="Al menos 8 caracteres.">
+                    <PasswordField
+                        name="password"
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Field>
 
-                <PasswordField
-                    id="register-confirm"
-                    name="confirm"
-                    label="Repetí la contraseña"
-                    required
-                    autoComplete="new-password"
-                    value={confirm}
-                    error={errors.confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                />
+                <Field id="register-confirm" label="Repetí la contraseña" required error={errors.confirm}>
+                    <PasswordField
+                        name="confirm"
+                        autoComplete="new-password"
+                        value={confirm}
+                        onChange={(e) => setConfirm(e.target.value)}
+                    />
+                </Field>
 
-                <Button type="submit" fullWidth loading={pending}>
-                    Crear cuenta
+                <Button type="submit" disabled={pending}>
+                    {pending ? "Creando cuenta…" : "Crear cuenta"}
                 </Button>
 
-                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", textAlign: "center" }}>
+                <p className="hx-auth__switch">
                     ¿Ya tenés cuenta? <Link to="/login">Ingresá</Link>
                 </p>
             </form>

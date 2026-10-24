@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
-import { BrandLockup, Card } from "../../design-system";
-import "./AuthShell.css";
+import type { ReactNode } from 'react';
+import { HexarioMark } from '../../design-system';
 
 type AuthShellProps = {
     /** Micro-etiqueta en mayúsculas sobre el título (ej. "Crear cuenta"). */
@@ -10,36 +9,23 @@ type AuthShellProps = {
     children: ReactNode;
 };
 
-// Login y registro comparten exactamente la misma estructura (panel de marca +
-// tarjeta con formulario): el único contenido propio de cada pantalla es el
-// formulario, que entra por `children`.
+// Login y registro comparten la misma estructura (marca + introducción +
+// formulario): cada pantalla sólo aporta su formulario por `children`.
 export function AuthShell({ eyebrow, title, subtitle, children }: AuthShellProps) {
     return (
-        <div className="auth-shell">
-            <aside className="auth-shell__brand">
-                <BrandLockup height={26} />
-                <div className="auth-shell__claim-block">
-                    <h2 className="auth-shell__claim">Tu producto empieza acá.</h2>
-                    <p className="auth-shell__claim-text">
-                        Creá tu cuenta una vez y volvé a entrar desde cualquier dispositivo, sin repetir el ingreso.
-                    </p>
-                </div>
-            </aside>
-            <main className="auth-shell__main">
-                <Card className="auth-shell__card">
-                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-                        <header style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                            <span className="eyebrow">{eyebrow}</span>
-                            <h1 style={{ fontSize: "var(--text-2xl)" }}>{title}</h1>
-                            {subtitle ? (
-                                <p style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)", textWrap: "pretty" }}>
-                                    {subtitle}
-                                </p>
-                            ) : null}
-                        </header>
-                        {children}
-                    </div>
-                </Card>
+        <div className="hx-auth">
+            <div className="hx-auth__brand">
+                <HexarioMark size={26} />
+                <span>Hexario</span>
+            </div>
+
+            <main className="hx-auth__main">
+                <header className="hx-auth__intro">
+                    <span className="hx-label">{eyebrow}</span>
+                    <h1 className="hx-title">{title}</h1>
+                    {subtitle ? <p className="hx-caption">{subtitle}</p> : null}
+                </header>
+                {children}
             </main>
         </div>
     );

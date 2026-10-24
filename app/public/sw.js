@@ -2,7 +2,7 @@
 // instalable. No cachea respuestas de la API a propósito: los datos siempre
 // se piden a la red, sólo el shell (HTML, JS, CSS, fuentes, imágenes) se
 // guarda en el dispositivo.
-const CACHE = "hexario-shell-v1";
+const CACHE = "hexario-shell-v2";
 const SHELL = [
     "/",
     "/index.html",
@@ -15,10 +15,7 @@ const SHELL = [
     "/icons/icon-512.png",
     "/icons/apple-touch-icon.png"
 ];
-const CACHEABLE_DESTINATIONS = new Set(["script", "style", "font", "image"]);
-// Tipografías del sistema de diseño: son las únicas peticiones de otro origen
-// que vale la pena guardar, para que la app instalada se vea igual sin red.
-const FONT_ORIGINS = new Set(["https://fonts.googleapis.com", "https://fonts.gstatic.com"]);
+const CACHEABLE_DESTINATIONS = new Set(["script", "style", "font", "image", "worker"]);
 
 self.addEventListener("install", (event) => {
     event.waitUntil(
@@ -43,8 +40,8 @@ self.addEventListener("fetch", (event) => {
     if (request.method !== "GET") return;
 
     const url = new URL(request.url);
-    const isSameOrigin = url.origin === self.location.origin;
-    if (!isSameOrigin && !FONT_ORIGINS.has(url.origin)) return;
+    // Sólo el shell propio: las teselas del mapa y la API siempre van a la red.
+    if (url.origin !== self.location.origin) return;
 
     // Navegación (SPA): red primero, y si no hay red se sirve el shell cacheado
     // para que el router resuelva la ruta del lado del cliente.
