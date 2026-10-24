@@ -27,6 +27,12 @@ export function createApp(container: Container): Express {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
+    // Healthcheck para Docker. No consulta la base: si el proceso responde,
+    // la API está viva; la conexión a Postgres se valida al arrancar.
+    app.get('/health', (_req, res) => {
+        res.status(200).json({ status: 'ok' });
+    });
+
     app.use('/user', container.user.router);
     app.use('/territories', container.territory.router);
 

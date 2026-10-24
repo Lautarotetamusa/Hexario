@@ -2,18 +2,23 @@
 // instalable. No cachea respuestas de la API a propósito: los datos siempre
 // se piden a la red, sólo el shell (HTML, JS, CSS, fuentes, imágenes) se
 // guarda en el dispositivo.
-const CACHE = "hexario-shell-v2";
+const CACHE = "hexario-shell-v3";
+
+// El SW se sirve desde /app/sw.js en producción. Resolver el shell contra su
+// propia ubicación hace que funcione igual en local (donde vive en /).
+const BASE = new URL("./", self.location).pathname;
+const INDEX = `${BASE}index.html`;
 const SHELL = [
-    "/",
-    "/index.html",
-    "/manifest.webmanifest",
-    "/favicon.svg",
-    "/favicon.png",
-    "/icons/icon.svg",
-    "/icons/icon-maskable.svg",
-    "/icons/icon-192.png",
-    "/icons/icon-512.png",
-    "/icons/apple-touch-icon.png"
+    BASE,
+    INDEX,
+    `${BASE}manifest.webmanifest`,
+    `${BASE}favicon.svg`,
+    `${BASE}favicon.png`,
+    `${BASE}icons/icon.svg`,
+    `${BASE}icons/icon-maskable.svg`,
+    `${BASE}icons/icon-192.png`,
+    `${BASE}icons/icon-512.png`,
+    `${BASE}icons/apple-touch-icon.png`
 ];
 const CACHEABLE_DESTINATIONS = new Set(["script", "style", "font", "image", "worker"]);
 
@@ -50,10 +55,10 @@ self.addEventListener("fetch", (event) => {
             fetch(request)
                 .then((response) => {
                     const copy = response.clone();
-                    caches.open(CACHE).then((cache) => cache.put("/index.html", copy));
+                    caches.open(CACHE).then((cache) => cache.put(INDEX, copy));
                     return response;
                 })
-                .catch(async () => (await caches.match("/index.html")) || offlineFallback())
+                .catch(async () => (await caches.match(INDEX)) || offlineFallback())
         );
         return;
     }

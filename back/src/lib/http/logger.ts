@@ -31,6 +31,9 @@ function statusLevel(status: number): "ERROR" | "WARN" | "INFO" {
  * bodies para no filtrar tokens, contraseñas ni datos personales.
  */
 export const requestLogger: RequestHandler = (req, res, next) => {
+    // El healthcheck de Docker pega cada pocos segundos; no ensuciamos el log.
+    if (req.path === "/health") return next();
+
     const startedAt = Date.now();
 
     res.on("finish", () => {

@@ -13,8 +13,12 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY . .
 
+# En producción la PWA se publica bajo /app/ para convivir con la landing en
+# / y la API en /api. El default / mantiene funcionando el compose local.
 ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_BASE_PATH=/
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_BASE_PATH=$VITE_BASE_PATH
 RUN npm run build
 
 # ---------------------------------------------------------------------------

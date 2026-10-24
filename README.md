@@ -8,7 +8,7 @@ arquitectura con la que trabajamos en Thorque:
 - **`app/`**: PWA instalable con React + Vite; mapa, ranking, canjes y
   sistema de diseño propio.
 
-El mapa muestra celdas H3 de **resolución 9**. Un usuario autenticado activa
+El mapa muestra celdas H3 de **resolución 10**. Un usuario autenticado activa
 su ubicación y reclama automáticamente una celda libre cuando entra en ella.
 El servidor guarda al primer dueño en PostgreSQL.
 
@@ -35,7 +35,7 @@ clientes, etc.).
 - **JWT** (`jsonwebtoken`) + **bcrypt**
 - **React 19 + Vite** para la app
 - **PWA**: manifest, service worker, instalación y pantalla offline
-- **MapLibre GL + h3-js** para la grilla de resolución 9
+- **MapLibre GL + h3-js** para la grilla de resolución 10
 - **Vitest + Supertest** para tests del back
 
 ## Estructura del repo
@@ -104,6 +104,21 @@ Para bajarlo:
 docker compose down          # conserva los datos
 docker compose down -v       # borra también el volumen de Postgres
 ```
+
+## Deploy de producción
+
+El deploy real usa un solo host detrás de Cloudflare:
+
+```text
+https://hexario.thorque.com.ar/       landing
+https://hexario.thorque.com.ar/app/   PWA
+https://hexario.thorque.com.ar/api/   API
+```
+
+GitHub Actions buildea y publica las tres imágenes en GHCR en cada push a
+`main`. La VPS sólo pullea y levanta `infra/docker-compose.yml` (nginx +
+landing + app + API + Postgres). Los pasos, secretos y variables de GitHub
+están en [`infra/README.md`](infra/README.md).
 
 ## Levantarlo en local (sin la imagen de la API)
 

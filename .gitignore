@@ -9,6 +9,12 @@
 /landing/.env.local
 /landing/.env.*.local
 
+# Deploy de producción: secretos y certificados viven sólo en la VPS.
+/infra/.env
+/infra/certs/*
+!/infra/certs/.gitkeep
+!/infra/certs/README.md
+
 # Datos locales de Postgres si se corre con un volumen bind (no es el caso
 # por defecto, pero evita commitear dumps por accidente).
 /postgres/

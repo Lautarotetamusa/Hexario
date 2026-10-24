@@ -13,11 +13,15 @@ import { ProfilePage } from "./features/profile/ProfilePage";
 import { InstallAppPage } from "./features/pwa/InstallAppPage";
 import { OfflineGate } from "./features/pwa/OfflineGate";
 
+// Vite expone el base path con barra final (`/app/` en producción, `/` en
+// local). React Router espera el basename sin barra final.
+const BASENAME = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+
 function App() {
     return (
         <ToastProvider>
             <AuthProvider>
-                <BrowserRouter>
+                <BrowserRouter basename={BASENAME}>
                     {/* Sin conexión se reemplaza la app entera por la pantalla de
                         aviso: cubre cualquier ruta sin repetir la comprobación. */}
                     <OfflineGate>

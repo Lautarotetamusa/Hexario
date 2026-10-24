@@ -1,0 +1,22 @@
+# Contexto usado por landing/Dockerfile (necesita app/src/design-system).
+# Los contextos de app/ y back/ usan sus propios .dockerignore.
+.git
+.github
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+**/logs
+**/*.log
+back
+infra
+specs
+.claude
+.opencode
+SRS_CONQUISTA_TERRITORIAL_ROSARIO.md
+PRODUCT.md
+README.md
+AGENTS.md
+CLAUDE.md
+docker-compose.yml
