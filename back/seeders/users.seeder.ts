@@ -7,7 +7,13 @@ export const PASSWORD_SEED = "seed12345";
 
 const USUARIOS_SEED: Omit<CreateUserInput, "password">[] = [
     { username: "usuario_uno", email: "usuario_uno@example.com" },
-    { username: "usuario_dos", email: "usuario_dos@example.com" }
+    { username: "usuario_dos", email: "usuario_dos@example.com" },
+    { username: "juli", email: "juli@example.com" },
+    { username: "tomi", email: "tomi@example.com" },
+    { username: "agus", email: "agus@example.com" },
+    { username: "meli", email: "meli@example.com" },
+    { username: "nico", email: "nico@example.com" },
+    { username: "sofia", email: "sofia@example.com" }
 ];
 
 // `register` (no un insert directo) para no duplicar el hasheo de la

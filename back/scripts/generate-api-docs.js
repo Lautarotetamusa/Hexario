@@ -84,7 +84,7 @@ function main() {
             const allRoutes = routesForMount(mount);
             if (allRoutes.length === 0) continue;
 
-            lines.push(`## ${moduleName} (${mount.prefix === "/" ? "" : mount.prefix})`, "");
+            lines.push(`## ${moduleName}${mount.prefix === "/" ? "" : ` (${mount.prefix})`}`, "");
             pushRoutes(mount, allRoutes);
             lines.push("");
             continue;

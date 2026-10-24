@@ -35,6 +35,7 @@ export function createApp(container: Container): Express {
 
     app.use('/user', container.user.router);
     app.use('/territories', container.territory.router);
+    app.use('/', container.business.router);
 
     app.use(handleErrors);
 

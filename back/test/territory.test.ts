@@ -48,6 +48,12 @@ describe("territorios H3", () => {
     });
 
     it("reclama una sola vez y preserva el primer dueño", async () => {
+        // El seed ya le dio territorios a usuario_uno: el claim de este test
+        // suma uno sobre el total inicial.
+        const before = await request(app).get("/territories/mine")
+            .set("Authorization", `Bearer ${firstToken}`);
+        const initialCount = before.body.data.count;
+
         const first = await request(app).post("/territories/claim")
             .set("Authorization", `Bearer ${firstToken}`).send(location());
         expect(first.status).toBe(201);
@@ -70,7 +76,7 @@ describe("territorios H3", () => {
 
         const mine = await request(app).get("/territories/mine")
             .set("Authorization", `Bearer ${firstToken}`);
-        expect(mine.body.data.count).toBe(1);
+        expect(mine.body.data.count).toBe(initialCount + 1);
     });
 
     it("deja un solo ganador ante dos reclamos simultáneos", async () => {

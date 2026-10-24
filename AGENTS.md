@@ -16,7 +16,7 @@ Antes de tocar código, leé:
 
 Reglas rápidas:
 
-- Los módulos de negocio actuales son `user` y `territory`; para uno nuevo,
+- Los módulos de negocio actuales son `user`, `territory` y `business`; para uno nuevo,
   seguí la estructura de `back/src/modules/user/`.
 - Las reglas de negocio van en el `service`, las queries en el
   `repository` y el `controller` sólo adapta HTTP.

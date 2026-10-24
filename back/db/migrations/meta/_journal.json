@@ -15,6 +15,13 @@
       "when": 1792858957007,
       "tag": "0001_quiet_red_ghost",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792865280995,
+      "tag": "0002_true_tag",
+      "breakpoints": true
     }
   ]
 }

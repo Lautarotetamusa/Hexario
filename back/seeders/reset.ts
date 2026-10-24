@@ -1,13 +1,11 @@
 import { sql, getTableName } from "drizzle-orm";
 import { db } from "../src/db/client";
-import { usersTable } from "../src/db/schema";
+import { businessesTable, promotionsTable, territoriesTable, usersTable } from "../src/db/schema";
 
-const TABLAS_SEEDEADAS = [usersTable];
+// Todas las tablas que el seeder recrea. `TRUNCATE ... CASCADE` resuelve las
+// FKs y reinicia las identidades, así el seeder es repetible desde cero.
+const TABLAS_SEEDEADAS = [usersTable, territoriesTable, businessesTable, promotionsTable];
 
-// `TRUNCATE ... CASCADE` en vez de borrar tabla por tabla en orden de FKs:
-// Postgres resuelve las dependencias solo y de paso reinicia los
-// `generatedAlwaysAsIdentity`, así que un re-run del seeder siempre arranca
-// de ids limpios.
 export async function resetSeedData(): Promise<void> {
     const nombresTablas = TABLAS_SEEDEADAS.map((tabla) => sql.identifier(getTableName(tabla)));
 

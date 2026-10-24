@@ -46,6 +46,7 @@ clientes, etc.).
 │   ├── src/
 │   │   ├── modules/user/     usuarios y autenticación
 │   │   ├── modules/territory/  grilla y reclamos
+│   │   ├── modules/business/ negocios y promociones
 │   │   ├── lib/auth/         firma/verificación de JWT
 │   │   ├── lib/http/         sobre de respuestas + manejo de errores
 │   │   ├── db/               client de Drizzle, schema barrel y migrate
@@ -98,6 +99,10 @@ Si querés datos de prueba en Docker, corré el seed una vez:
 docker compose exec api node dist/seeders/index.js
 ```
 
+> El seeder hace `TRUNCATE` de usuarios, territorios, negocios y
+> promociones: es para desarrollo, no lo corras sobre una base con datos
+> reales.
+
 Para bajarlo:
 
 ```bash
@@ -129,7 +134,7 @@ docker compose up -d postgresdb
 cd back
 npm install
 npm run db:migrate:run       # aplica db/migrations
-npm run seed                 # crea usuario_uno y usuario_dos
+npm run seed                 # 8 usuarios, 12 territorios, 8 negocios y 12 promos
 npm run dev                  # http://localhost:3001
 ```
 
@@ -152,6 +157,14 @@ que pongas en `back/.env` y ajustá `DB_PORT` (por defecto el ejemplo usa
 |---|---|
 | `usuario_uno` | `seed12345` |
 | `usuario_dos` | `seed12345` |
+| `juli` | `seed12345` |
+| `tomi` | `seed12345` |
+| `agus` | `seed12345` |
+| `meli` | `seed12345` |
+| `nico` | `seed12345` |
+| `sofia` | `seed12345` |
+
+El seed también carga territorios, 8 comercios y 12 promociones de ejemplo.
 
 ## Endpoints
 
@@ -164,6 +177,10 @@ que pongas en `back/.env` y ajustá `DB_PORT` (por defecto el ejemplo usa
 | `GET` | `/territories?bbox=sur,oeste,norte,este` | no | — |
 | `GET` | `/territories/mine` | sí (Bearer) | — |
 | `POST` | `/territories/claim` | sí (Bearer) | `{ latitude, longitude, accuracy, recordedAt }` |
+| `GET` | `/businesses` | no | — |
+| `GET` | `/businesses/:slug` | no | — |
+| `GET` | `/promotions` | no | — |
+| `GET` | `/promotions/:id` | no | — |
 
 El login devuelve `{ success, message, token }`; el resto de las respuestas
 usa el sobre `{ success, message?, data }` o

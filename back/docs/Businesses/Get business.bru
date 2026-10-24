@@ -1,0 +1,58 @@
+meta {
+  name: Get business
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{host}}/businesses/cafe-la-florida
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("incluye promociones disponibles", function () {
+    expect(res.getBody().data.promotions).to.be.an("array");
+    expect(res.getBody().data.promotions.length).to.be.greaterThan(0);
+  });
+
+  test("no incluye promos vencidas", function () {
+    const titles = res.getBody().data.promotions.map((promotion) => promotion.title);
+    expect(titles).not.to.include("Promo vencida");
+  });
+}
+
+docs {
+  # GET /businesses/:slug
+
+  Detalle público de un comercio con sus promociones disponibles.
+
+  - **Auth:** no
+  - **Params:** `slug` del comercio.
+  - **Éxito:** `200 OK`
+  - **No encontrado:** `404`
+
+  ## Respuesta 200
+
+      {
+        "success": true,
+        "data": {
+          "id": 1,
+          "slug": "cafe-la-florida",
+          "name": "Café La Florida",
+          "promotions": [
+            {
+              "id": 1,
+              "title": "Café con dos medialunas",
+              "costPoints": 450,
+              "stock": 20,
+              "business": { "slug": "cafe-la-florida", "name": "Café La Florida" }
+            }
+          ]
+        }
+      }
+}

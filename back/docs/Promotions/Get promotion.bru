@@ -1,0 +1,37 @@
+meta {
+  name: Get promotion
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{host}}/promotions/1
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("devuelve la promo y su negocio", function () {
+    expect(res.getBody().data.id).to.equal(1);
+    expect(res.getBody().data.business.slug).to.be.a("string");
+  });
+}
+
+docs {
+  # GET /promotions/:id
+
+  Detalle público de una promoción disponible.
+
+  - **Auth:** no
+  - **Params:** `id` numérico de la promoción.
+  - **Éxito:** `200 OK`
+  - **No disponible / inexistente:** `404`
+
+  ## Ejemplo
+
+      GET /promotions/1
+}

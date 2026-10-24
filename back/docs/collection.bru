@@ -38,6 +38,12 @@ docs {
   |---|---|
   | `usuario_uno` | `seed12345` |
   | `usuario_dos` | `seed12345` |
+  | `juli` | `seed12345` |
+  | `tomi` | `seed12345` |
+  | `agus` | `seed12345` |
+  | `meli` | `seed12345` |
+  | `nico` | `seed12345` |
+  | `sofia` | `seed12345` |
 
   ## Formato de respuesta
 
@@ -78,6 +84,10 @@ docs {
   | GET | `/territories` | No | Hexágonos visibles para un bbox (H3 10) |
   | GET | `/territories/mine` | Sí | Cantidad de hexágonos propios |
   | POST | `/territories/claim` | Sí | Reclama la celda de la ubicación |
+  | GET | `/businesses` | No | Lista los comercios activos |
+  | GET | `/businesses/:slug` | No | Detalle del comercio + promos |
+  | GET | `/promotions` | No | Promociones disponibles |
+  | GET | `/promotions/:id` | No | Detalle de una promoción |
 
   ## Estados frecuentes
 

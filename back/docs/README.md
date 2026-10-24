@@ -21,6 +21,10 @@ Colección de **Bruno** con los endpoints disponibles hoy en el backend.
 | `GET` | `/territories?bbox=s,w,n,e` | No | Hexágonos visibles (H3 resolución 10). |
 | `GET` | `/territories/mine` | Sí | Cantidad de hexágonos propios. |
 | `POST` | `/territories/claim` | Sí | Reclama la celda de la ubicación enviada. |
+| `GET` | `/businesses` | No | Lista los comercios activos. |
+| `GET` | `/businesses/:slug` | No | Detalle del comercio con sus promos. |
+| `GET` | `/promotions` | No | Promociones disponibles de todos los comercios. |
+| `GET` | `/promotions/:id` | No | Detalle de una promoción disponible. |
 
 ## Usuarios del seed
 
@@ -28,6 +32,15 @@ Colección de **Bruno** con los endpoints disponibles hoy en el backend.
 |---|---|
 | `usuario_uno` | `seed12345` |
 | `usuario_dos` | `seed12345` |
+| `juli` | `seed12345` |
+| `tomi` | `seed12345` |
+| `agus` | `seed12345` |
+| `meli` | `seed12345` |
+| `nico` | `seed12345` |
+| `sofia` | `seed12345` |
+
+El seed también carga 12 territorios, 8 comercios y 12 promociones (9
+disponibles y 3 ocultas a propósito para probar los filtros).
 
 ## Autenticación
 
@@ -105,6 +118,10 @@ curl -X PUT http://localhost:3001/user \
 - `Territories/Get map.bru`: hexágonos visibles para un bbox.
 - `Territories/Get mine.bru`: contador de hexágonos propios.
 - `Territories/Claim.bru`: reclamo de una celda H3.
+- `Businesses/List businesses.bru`: listado de comercios.
+- `Businesses/Get business.bru`: detalle + promos de un comercio.
+- `Promotions/List promotions.bru`: promos disponibles.
+- `Promotions/Get promotion.bru`: detalle de una promo.
 - `api.md`: resumen generado desde las rutas (`npm run docs:api`).
 
 La colección incluye tests básicos de status y forma de respuesta, y

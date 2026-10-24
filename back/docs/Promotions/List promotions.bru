@@ -1,0 +1,74 @@
+meta {
+  name: List promotions
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{host}}/promotions
+  body: none
+  auth: none
+}
+
+tests {
+  test("responde 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("devuelve promos con su negocio", function () {
+    expect(res.getBody().data.items).to.be.an("array");
+    expect(res.getBody().data.items[0].business.slug).to.be.a("string");
+  });
+
+  test("no devuelve promos pausadas, vencidas ni sin stock", function () {
+    const titles = res.getBody().data.items.map((promotion) => promotion.title);
+    expect(titles).not.to.include("Promo vencida");
+    expect(titles).not.to.include("Promo pausada");
+    expect(titles).not.to.include("Promo sin stock");
+  });
+}
+
+docs {
+  # GET /promotions
+
+  Lista las promociones disponibles de todos los comercios. Es pública.
+
+  Una promo aparece sólo si está activa, su comercio está activo, ya empezó,
+  no venció y tiene stock (BR-053).
+
+  - **Auth:** no
+  - **Éxito:** `200 OK`
+  - **Respuesta:** `data.items` + `data.count`.
+
+  ## Respuesta 200
+
+      {
+        "success": true,
+        "data": {
+          "count": 9,
+          "items": [
+            {
+              "id": 1,
+              "title": "Café con dos medialunas",
+              "description": "...",
+              "conditions": "...",
+              "costPoints": 450,
+              "stock": 20,
+              "perUserLimit": 1,
+              "startsAt": "2026-10-21T15:00:00.000Z",
+              "endsAt": "2026-11-23T15:00:00.000Z",
+              "business": {
+                "id": 1,
+                "slug": "cafe-la-florida",
+                "name": "Café La Florida",
+                "category": "cafe",
+                "address": "Córdoba 1234",
+                "neighborhood": "Centro",
+                "latitude": -32.9472,
+                "longitude": -60.6392
+              }
+            }
+          ]
+        }
+      }
+}
