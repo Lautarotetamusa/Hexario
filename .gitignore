@@ -20,6 +20,7 @@ node_modules/
 back/dist/
 back/coverage/
 back/.jscpd-report
+back/logs/
 app/dist/
 landing/dist/
 *.tsbuildinfo
