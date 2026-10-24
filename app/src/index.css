@@ -330,6 +330,25 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hx-map-hint,
+.hx-map-status {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 7px 12px;
+  border: 1px solid var(--hx-line);
+  border-radius: var(--hx-radius-pill);
+  background: var(--hx-panel);
+  box-shadow: var(--hx-shadow-float);
+  color: var(--hx-ink-2);
+  font-size: var(--hx-fs-caption);
+  text-wrap: pretty;
+}
+
+.hx-map-status {
+  color: var(--hx-ink);
 }
 
 .hx-map-notice {

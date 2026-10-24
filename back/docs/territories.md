@@ -9,7 +9,7 @@ Los éxitos nuevos usan `{ "success": true, "data": ... }`; los errores usan
 
 `GET /territories?bbox=sur,oeste,norte,este` no requiere sesión. Las cuatro
 coordenadas son grados WGS84: latitud sur, longitud oeste, latitud norte,
-longitud este. La respuesta contiene `resolution: 9`, `bounds` del área de
+longitud este. La respuesta contiene `resolution: 10`, `bounds` del área de
 juego, `serverTime` y `cells`. Cada celda tiene `id` H3, `boundary` como
 pares `[latitud, longitud]` para dibujar, `owner: { username } | null` y
 `claimedAt: ISO-8601 | null`. Las celdas libres se calculan con H3; se guarda
@@ -29,7 +29,7 @@ responde `400 MAP_AREA_TOO_LARGE` para que el cliente acerque el mapa.
 }
 ```
 
-El servidor convierte la posición a una celda H3 de resolución 9. Sólo acepta
+El servidor convierte la posición a una celda H3 de resolución 10. Sólo acepta
 una muestra cuya hora difiera como máximo 30 segundos de la hora del servidor
 (y no esté más de 5 segundos en el futuro), con error informado menor o igual
 a 50 metros y dentro del área configurada. Devuelve `201` con

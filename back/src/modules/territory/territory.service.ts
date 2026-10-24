@@ -3,7 +3,7 @@ import { ApiError } from "../../lib/http/errors";
 import { TerritoryRepository } from "./territory.repository";
 import { BoundingBox, ClaimInput } from "./territory.validator";
 
-export const GRID_RESOLUTION = 9;
+export const GRID_RESOLUTION = 10;
 
 // La zona del prototipo es una cobertura aproximada y versionable de Rosario.
 // Antes de un piloto debe reemplazarse por un límite municipal validado.

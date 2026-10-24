@@ -9,7 +9,7 @@ import { PASSWORD_SEED } from "../seeders/users.seeder";
 const app = createApp(createContainer());
 const latitude = -32.949;
 const longitude = -60.698;
-const cellId = latLngToCell(latitude, longitude, 9);
+const cellId = latLngToCell(latitude, longitude, 10);
 const location = () => ({ latitude, longitude, accuracy: 12, recordedAt: new Date().toISOString() });
 let firstToken: string;
 let secondToken: string;
@@ -26,10 +26,10 @@ beforeAll(async () => {
 afterAll(() => db.$client.end());
 
 describe("territorios H3", () => {
-    it("muestra celdas de resolución 9 en el mapa", async () => {
+    it("muestra celdas de resolución 10 en el mapa", async () => {
         const response = await request(app).get("/territories?bbox=-32.952,-60.701,-32.946,-60.695");
         expect(response.status).toBe(200);
-        expect(response.body.data.resolution).toBe(9);
+        expect(response.body.data.resolution).toBe(10);
         expect(response.body.data.cells.some((cell: { id: string }) => cell.id === cellId)).toBe(true);
     });
 
@@ -75,7 +75,7 @@ describe("territorios H3", () => {
 
     it("deja un solo ganador ante dos reclamos simultáneos", async () => {
         const competingLocation = { ...location(), latitude: -32.96, longitude: -60.71 };
-        const competingCellId = latLngToCell(competingLocation.latitude, competingLocation.longitude, 9);
+        const competingCellId = latLngToCell(competingLocation.latitude, competingLocation.longitude, 10);
         const [first, second] = await Promise.all([
             request(app).post("/territories/claim").set("Authorization", `Bearer ${firstToken}`).send(competingLocation),
             request(app).post("/territories/claim").set("Authorization", `Bearer ${secondToken}`).send(competingLocation)

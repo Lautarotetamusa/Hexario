@@ -16,6 +16,8 @@ export type ListEnvelope<T> = {
 export type ApiErrorItem = {
     code: string;
     message: string;
+    // Algunos errores de negocio agregan datos extra (ej. `territory` en un 409).
+    [key: string]: unknown;
 };
 
 export class ApiError extends Error {

@@ -18,11 +18,25 @@ import {
   MAP_ZOOM,
 } from './mapConfig';
 
+export type MapBounds = {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+};
+
+type Location = {
+  latitude: number;
+  longitude: number;
+};
+
 type UseHexarioMapOptions = {
   container: RefObject<HTMLDivElement | null>;
   theme: ThemeName;
   cells: HexCell[];
+  location: Location | null;
   onSelectHex: (h3: string | null) => void;
+  onBoundsChange: (bounds: MapBounds) => void;
 };
 
 type MapControls = {
@@ -31,14 +45,25 @@ type MapControls = {
 };
 
 /**
- * Crea el mapa una sola vez y mantiene sincronizados el tema y los hexágonos.
- * La pantalla no conoce MapLibre: sólo pide centrar o enfocar.
+ * Crea el mapa una sola vez y mantiene sincronizados el tema, los hexágonos,
+ * la ubicación y el viewport. La pantalla no conoce MapLibre: sólo pide
+ * centrar o enfocar.
  */
-export function useHexarioMap({ container, theme, cells, onSelectHex }: UseHexarioMapOptions): MapControls {
+export function useHexarioMap({
+  container,
+  theme,
+  cells,
+  location,
+  onSelectHex,
+  onBoundsChange,
+}: UseHexarioMapOptions): MapControls {
   const mapRef = useRef<MapLibreMap | null>(null);
   const controllerRef = useRef<HexarioMapController | null>(null);
+  const markerRef = useRef<Marker | null>(null);
   const themeRef = useRef(theme);
   const selectRef = useRef(onSelectHex);
+  const boundsRef = useRef(onBoundsChange);
+  const locationRef = useRef(location);
 
   useEffect(() => {
     themeRef.current = theme;
@@ -47,6 +72,14 @@ export function useHexarioMap({ container, theme, cells, onSelectHex }: UseHexar
   useEffect(() => {
     selectRef.current = onSelectHex;
   }, [onSelectHex]);
+
+  useEffect(() => {
+    boundsRef.current = onBoundsChange;
+  }, [onBoundsChange]);
+
+  useEffect(() => {
+    locationRef.current = location;
+  }, [location]);
 
   useEffect(() => {
     const node = container.current;
@@ -66,23 +99,37 @@ export function useHexarioMap({ container, theme, cells, onSelectHex }: UseHexar
     map.setPadding({ bottom: MAP_BOTTOM_PADDING });
 
     const controller = setupHexarioMap(map, { ...MAP_STYLE_OPTIONS, theme: themeRef.current });
-    const marker = new Marker({ element: createLocationMarker() }).setLngLat(MAP_CENTER).addTo(map);
+    const marker = new Marker({ element: createLocationMarker() }).setLngLat(MAP_CENTER);
 
     const handleClick = (event: { point: { x: number; y: number } }) => {
       selectRef.current(controller.hexAt(event.point));
     };
+    const notifyBounds = () => {
+      const bounds = map.getBounds();
+      boundsRef.current({
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+        north: bounds.getNorth(),
+        east: bounds.getEast(),
+      });
+    };
 
     mapRef.current = map;
     controllerRef.current = controller;
+    markerRef.current = marker;
     map.on('click', handleClick);
+    map.on('moveend', notifyBounds);
+    map.once('load', notifyBounds);
 
     return () => {
       map.off('click', handleClick);
+      map.off('moveend', notifyBounds);
       marker.remove();
       controller.destroy();
       map.remove();
       mapRef.current = null;
       controllerRef.current = null;
+      markerRef.current = null;
     };
   }, [container]);
 
@@ -94,8 +141,24 @@ export function useHexarioMap({ container, theme, cells, onSelectHex }: UseHexar
     controllerRef.current?.setTheme(theme);
   }, [theme]);
 
+  useEffect(() => {
+    const marker = markerRef.current;
+    const map = mapRef.current;
+    if (!marker || !map) return;
+
+    if (!location) {
+      if (marker.getElement().isConnected) marker.remove();
+      return;
+    }
+
+    marker.setLngLat([location.longitude, location.latitude]);
+    if (!marker.getElement().isConnected) marker.addTo(map);
+  }, [location]);
+
   const centerOnLocation = useCallback(() => {
-    mapRef.current?.easeTo({ center: MAP_CENTER, zoom: 16 });
+    const current = locationRef.current;
+    if (!current) return;
+    mapRef.current?.easeTo({ center: [current.longitude, current.latitude], zoom: 16 });
   }, []);
 
   const focusHex = useCallback((h3: string) => {

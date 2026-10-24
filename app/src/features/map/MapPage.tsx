@@ -1,33 +1,45 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { latLngToCell } from 'h3-js';
 import {
   BottomSheet,
   Button,
   Chip,
+  HEX_RESOLUTION,
   HeroNumber,
   HexarioMark,
   HexCard,
   IconButton,
   IconClose,
   IconLocate,
+  IconPause,
   IconPlay,
-  Num,
   StatRow,
-  TheftNotice,
   formatPoints,
   useTheme,
   useToast,
+  type HexCell,
   type SheetSnap,
 } from '../../design-system';
-import { AppNav } from '../../layout/AppNav';
-import { useHexarioMap } from './useHexarioMap';
+import { ApiError } from '../../api/client';
 import {
-  MOCK_HEX_CELLS,
-  MOCK_SUMMARY,
-  MOCK_THEFT,
-  describeHex,
+  apiErrorCode,
+  claimTerritory,
+  getMineCount,
+  territoryFromError,
+} from '../../api/territories';
+import { useAuth } from '../../auth/AuthContext';
+import { AppNav } from '../../layout/AppNav';
+import { getErrorMessage } from '../../lib/errors';
+import { useGeoLocation, type GeoPosition } from './useGeoLocation';
+import { useTerritories } from './useTerritories';
+import { useHexarioMap, type MapBounds } from './useHexarioMap';
+import {
+  colorForPlayer,
+  describeH3,
   hexCardState,
-  hexPlaceLabel,
-} from './mock';
+  protectionLeftMs,
+  toHexCellFromTerritory,
+} from './territoryMapping';
 
 const SHEET_HEIGHTS: Record<SheetSnap, number> = { min: 88, mid: 300, full: 420 };
 
@@ -38,55 +50,234 @@ const SHEET_CHROME = 48;
 const floatingControlBottom = (snap: SheetSnap) =>
   `calc(${SHEET_HEIGHTS[snap]}px + ${SHEET_CHROME}px + var(--hx-nav) + env(safe-area-inset-bottom) + 16px)`;
 
-const HEX_ACTION_MESSAGE = {
-  free: 'Pasá por ahí para que sea tuyo',
-  mine: 'Volvé a pasar para renovar la protección',
-  stealable: 'Caminá hasta ahí y es tuyo',
-  protected: 'Todavía está protegido',
+const ACTION_COOLDOWN_MS = 10_000;
+
+const FIXED_ACTION_MESSAGE = {
+  mine: 'Ya es tuyo. La renovación todavía no está disponible.',
+  stealable: 'El robo todavía no está disponible.',
 } as const;
 
 export function MapPage() {
   const { theme } = useTheme();
   const toast = useToast();
+  const { user, logout } = useAuth();
+  const username = user?.username;
+
   const mapContainer = useRef<HTMLDivElement>(null);
+  const claimingRef = useRef(false);
+  const lastClaimCellRef = useRef<string | null>(null);
+  const lastClaimAtRef = useRef(0);
+  const hasCenteredRef = useRef(false);
+
   const [snap, setSnap] = useState<SheetSnap>(() => (window.innerHeight < 680 ? 'min' : 'mid'));
   const [selected, setSelected] = useState<string | null>(null);
-  const [theftVisible, setTheftVisible] = useState(true);
+  const [mineCount, setMineCount] = useState(0);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
+
+  const { data, loading, error: territoriesError, setBbox, refresh: refreshTerritories } = useTerritories();
+  const { position, status, error: geoError, active, start, stop } = useGeoLocation();
+
+  const refreshMine = useCallback(async () => {
+    try {
+      setMineCount(await getMineCount());
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) logout();
+    }
+  }, [logout]);
+
+  useEffect(() => {
+    void refreshMine();
+  }, [refreshMine]);
 
   const cells = useMemo(() => {
-    const base = MOCK_HEX_CELLS.map((cell) => (cell.h3 === selected ? { ...cell, selected: true } : cell));
-    // Un hexágono libre también se puede tocar: entra al mapa sólo para
-    // dibujar el halo de selección.
-    if (selected && !base.some((cell) => cell.h3 === selected)) {
-      base.push({ h3: selected, owner: null, selected: true });
+    const mapped: HexCell[] = (data?.cells ?? []).map((cell) =>
+      toHexCellFromTerritory(cell, username, colorForPlayer, cell.id === selected),
+    );
+    if (selected && !mapped.some((cell) => cell.h3 === selected)) {
+      mapped.push({ h3: selected, owner: null, selected: true });
     }
-    return base;
-  }, [selected]);
+    return mapped;
+  }, [data, username, selected]);
 
   const handleSelectHex = useCallback((h3: string | null) => {
     setSelected(h3);
-    if (h3) {
-      setTheftVisible(false);
-      // Un toque en el mapa no tiene que quedar escondido detrás del panel mínimo.
-      setSnap((current) => (current === 'min' ? 'mid' : current));
-    }
+    if (h3) setSnap((current) => (current === 'min' ? 'mid' : current));
   }, []);
 
-  const { centerOnLocation, focusHex } = useHexarioMap({
+  const handleBoundsChange = useCallback(
+    (bounds: MapBounds) => {
+      setBbox(bounds);
+    },
+    [setBbox],
+  );
+
+  const { centerOnLocation } = useHexarioMap({
     container: mapContainer,
     theme,
     cells,
+    location: position,
     onSelectHex: handleSelectHex,
+    onBoundsChange: handleBoundsChange,
   });
 
-  const selectedHex = selected ? describeHex(selected) : null;
-  const selectedState = selectedHex ? hexCardState(selectedHex) : null;
+  const selectedDescriptor = useMemo(
+    () => (selected ? describeH3(data, selected, username, position, colorForPlayer) : null),
+    [data, selected, username, position],
+  );
+  const selectedState = selectedDescriptor ? hexCardState(selectedDescriptor) : null;
 
-  const handleRecover = () => {
-    setTheftVisible(false);
-    focusHex(MOCK_THEFT.h3);
-    handleSelectHex(MOCK_THEFT.h3);
+  const visibleMine = useMemo(
+    () => (data?.cells ?? []).filter((cell) => cell.owner?.username === username),
+    [data, username],
+  );
+  const protectedCount = visibleMine.filter((cell) => protectionLeftMs(cell.claimedAt) > 0).length;
+  const stealableCount = visibleMine.length - protectedCount;
+
+  const attemptClaim = useCallback(
+    async (current: GeoPosition) => {
+      if (claimingRef.current) return;
+
+      if (current.accuracy > 50) {
+        setLocationMessage(`Esperando mejor precisión (${Math.round(current.accuracy)} m)`);
+        return;
+      }
+
+      claimingRef.current = true;
+      try {
+        const result = await claimTerritory({
+          latitude: current.latitude,
+          longitude: current.longitude,
+          accuracy: current.accuracy,
+          recordedAt: new Date(current.timestamp || Date.now()).toISOString(),
+        });
+
+        setLocationMessage(null);
+        if (result.claimed) {
+          toast('¡Nuevo hexágono conquistado!');
+          refreshTerritories();
+          await refreshMine();
+        }
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          logout();
+          toast('Tu sesión venció. Volvé a ingresar.');
+          return;
+        }
+
+        const code = apiErrorCode(err);
+        if (code === 'TERRITORY_OWNED') {
+          const territory = territoryFromError(err);
+          if (territory) {
+            setLocationMessage(`Ese hexágono es de ${territory.owner?.username ?? 'otro jugador'}`);
+          }
+          refreshTerritories();
+          return;
+        }
+        if (code === 'LOCATION_STALE') {
+          lastClaimCellRef.current = null;
+          setLocationMessage('La ubicación se actualizó. Reintentando…');
+          return;
+        }
+        if (code === 'LOCATION_INACCURATE') {
+          setLocationMessage('Esperando mejor precisión…');
+          return;
+        }
+        if (code === 'OUTSIDE_GAME_AREA') {
+          setLocationMessage('Estás fuera del área de juego');
+          return;
+        }
+
+        setLocationMessage(getErrorMessage(err));
+      } finally {
+        claimingRef.current = false;
+      }
+    },
+    [logout, refreshMine, refreshTerritories, toast],
+  );
+
+  useEffect(() => {
+    if (!active || !position || !username) return;
+    if (position.accuracy > 50) return;
+
+    const cell = latLngToCell(position.latitude, position.longitude, HEX_RESOLUTION);
+    if (cell === lastClaimCellRef.current) return;
+    if (Date.now() - lastClaimAtRef.current < ACTION_COOLDOWN_MS) return;
+
+    lastClaimCellRef.current = cell;
+    lastClaimAtRef.current = Date.now();
+    void attemptClaim(position);
+  }, [active, position, username, attemptClaim]);
+
+  useEffect(() => {
+    if (!position || hasCenteredRef.current) return;
+    hasCenteredRef.current = true;
+    centerOnLocation();
+  }, [position, centerOnLocation]);
+
+  const handleWalkToggle = () => {
+    if (active) {
+      stop();
+      lastClaimCellRef.current = null;
+      setLocationMessage(null);
+      toast('Caminata detenida');
+      return;
+    }
+
+    hasCenteredRef.current = false;
+    setLocationMessage(null);
+    start();
+    toast('Caminata iniciada');
   };
+
+  const handleCenterOnLocation = () => {
+    if (!position) {
+      start();
+      setLocationMessage('Activando ubicación…');
+      return;
+    }
+    centerOnLocation();
+  };
+
+  const handleHexAction = () => {
+    if (!selectedDescriptor || !selectedState) return;
+
+    if (selectedState === 'free') {
+      if (!position) {
+        start();
+        setLocationMessage('Activando ubicación para reclamar…');
+        return;
+      }
+
+      const cell = latLngToCell(position.latitude, position.longitude, HEX_RESOLUTION);
+      if (cell !== selectedDescriptor.h3) {
+        toast('Tenés que estar dentro de este hexágono');
+        return;
+      }
+
+      void attemptClaim(position);
+      return;
+    }
+
+    if (selectedState === 'mine' || selectedState === 'stealable') {
+      toast(FIXED_ACTION_MESSAGE[selectedState]);
+    }
+  };
+
+  const accuracyMessage =
+    active && position && position.accuracy > 50
+      ? `Esperando mejor precisión (${Math.round(position.accuracy)} m)`
+      : null;
+  const statusMessage = geoError ?? accuracyMessage ?? locationMessage;
+  const mapHint = useMemo(() => {
+    if (territoriesError) {
+      return apiErrorCode(territoriesError) === 'MAP_AREA_TOO_LARGE'
+        ? 'Acercá el mapa para ver los hexágonos'
+        : 'No pudimos cargar el mapa. Movelo para reintentar.';
+    }
+    if (loading && !data) return 'Cargando hexágonos…';
+    if (data && data.cells.length === 0) return 'Movete dentro de Rosario para ver hexágonos';
+    return null;
+  }, [territoriesError, loading, data]);
 
   return (
     <div className="hx-map-screen">
@@ -104,22 +295,19 @@ export function MapPage() {
             <span style={{ fontWeight: 600 }}>Centro</span>
             <span className="hx-caption">· Rosario</span>
           </span>
+          {active && <Chip tone="ok">Caminando</Chip>}
         </div>
+        {mapHint && (
+          <div className="hx-map-hint" role="status">
+            {mapHint}
+          </div>
+        )}
+        {statusMessage && (
+          <div className="hx-map-status" role="status">
+            {statusMessage}
+          </div>
+        )}
       </div>
-
-      {theftVisible && !selected && snap !== 'full' && (
-        <div className="hx-map-notice">
-          <TheftNotice
-            thiefName={MOCK_THEFT.thiefName}
-            thiefColor={MOCK_THEFT.thiefColor}
-            place={MOCK_THEFT.place}
-            when={MOCK_THEFT.when}
-            lostRentPerHour={MOCK_THEFT.lostRentPerHour}
-            onRecover={handleRecover}
-            onDismiss={() => setTheftVisible(false)}
-          />
-        </div>
-      )}
 
       {snap !== 'full' && (
         <>
@@ -137,7 +325,7 @@ export function MapPage() {
             aria-label="Centrar en mi ubicación"
             className="hx-map-locate"
             style={{ bottom: floatingControlBottom(snap) }}
-            onClick={centerOnLocation}
+            onClick={handleCenterOnLocation}
           >
             <IconLocate size={22} />
           </IconButton>
@@ -145,13 +333,13 @@ export function MapPage() {
       )}
 
       <BottomSheet
-        label={selectedHex ? 'Hexágono seleccionado' : 'Resumen de tus puntos'}
+        label={selectedDescriptor ? 'Hexágono seleccionado' : 'Resumen de tus hexágonos'}
         snap={snap}
         onSnapChange={setSnap}
         heights={SHEET_HEIGHTS}
         footer={<AppNav fixed={false} />}
       >
-        {selectedHex && selectedState ? (
+        {selectedDescriptor && selectedState ? (
           <>
             <div className="hx-sheet__row" style={{ alignItems: 'center' }}>
               <span className="hx-label">Hexágono</span>
@@ -161,37 +349,44 @@ export function MapPage() {
             </div>
             <HexCard
               state={selectedState}
-              ownerName={selectedHex.ownerName}
-              ownerColor={selectedHex.ownerColor ?? 'neutral'}
-              place={hexPlaceLabel(selectedHex)}
-              rentPerHour={selectedHex.rentPerHour}
-              protectionLeftMs={selectedHex.protectionLeftMs}
-              legendary={selectedHex.legendary}
+              ownerName={selectedDescriptor.ownerName}
+              ownerColor={selectedDescriptor.ownerColor}
+              place={selectedDescriptor.place}
+              rentPerHour={selectedDescriptor.rentPerHour}
+              protectionLeftMs={selectedDescriptor.protectionLeftMs}
+              legendary={selectedDescriptor.legendary}
               float={false}
               className="hx-card--flat"
-              onAction={() => toast(HEX_ACTION_MESSAGE[selectedState])}
+              onAction={handleHexAction}
               onNotify={() => toast('Te avisamos cuando se libere')}
             />
           </>
         ) : (
           <>
             <div className="hx-sheet__row">
-              <HeroNumber label="Tus puntos" value={formatPoints(MOCK_SUMMARY.points)} unit="pts" />
-              {snap !== 'min' && (
+              <HeroNumber label="Tus hexágonos" value={formatPoints(mineCount)} unit="hx" />
+              {status === 'active' && (
                 <Chip tone="ok">
-                  <Num>+{MOCK_SUMMARY.pointsPerHour}</Num> por hora
+                  Ubicación activa
                 </Chip>
               )}
             </div>
             <StatRow
               stats={[
-                { label: 'Hexágonos', value: MOCK_SUMMARY.hexagons },
-                { label: 'Protegidos', value: MOCK_SUMMARY.protectedCount },
-                { label: 'Robables', value: MOCK_SUMMARY.stealableCount, tone: 'alert' },
+                { label: 'En vista', value: visibleMine.length },
+                { label: 'Protegidos', value: protectedCount },
+                {
+                  label: 'Robables',
+                  value: stealableCount,
+                  tone: stealableCount > 0 ? 'alert' : 'default',
+                },
               ]}
             />
-            <Button icon={<IconPlay size={20} strokeWidth={2} />} onClick={() => toast('Caminata iniciada')}>
-              Empezar caminata
+            <Button
+              icon={active ? <IconPause size={20} strokeWidth={2} /> : <IconPlay size={20} strokeWidth={2} />}
+              onClick={handleWalkToggle}
+            >
+              {active ? 'Detener caminata' : 'Empezar caminata'}
             </Button>
           </>
         )}
